@@ -146,7 +146,9 @@
 <script>
 const URL_ = "https://ksucnjrmcagzepxahync.supabase.co/rest/v1/party_rsvp";
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzdWNuanJtY2FnemVweGFoeW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNDM0NDQsImV4cCI6MjEwODcxOTQ0NH0.BSj6kWbL7tt4Elea3YxNOlDUPmEiXkM1dURLHlU8Wzo";
-const H = {apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"};
+const devId = (() => { try { let d = localStorage.getItem("festa_dev"); if(!d){ d = Array.from(crypto.getRandomValues(new Uint8Array(2)), b=>b.toString(16).padStart(2,"0")).join("").toUpperCase(); localStorage.setItem("festa_dev", d); } return d; } catch(e){ return "????"; } })();
+const whoNow = () => { try { return localStorage.getItem("festa_who") || ""; } catch(e){ return ""; } };
+const H = {apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json", get "x-client-info"(){ return encodeURIComponent(devId+"|"+whoNow()); }};
 const $ = id => document.getElementById(id);
 
 let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1, exps = [], foodPhoto = null;
@@ -246,6 +248,7 @@ $("list").onclick = async e => {
 $("save").onclick = async () => {
   const name = $("name").value.trim();
   if(!name){ toast("Digite seu nome"); $("name").focus(); return; }
+  try{ localStorage.setItem("festa_who", name); }catch(e){}
   const going = status==="vou";
   const comps = going ? Array.from({length:guests-1}, (_,i)=>(companions[i]||"").trim().slice(0,80)).filter(Boolean) : [];
   const body = { name, status, guests: going?guests:1, companions: comps, food_photo: going?foodPhoto:null, onca: going&&onca, gifts: going&&onca?gifts:0, food: going?($("food").value.trim()||null):null, drink: going?($("drink").value.trim()||null):null };

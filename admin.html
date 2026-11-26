@@ -99,6 +99,12 @@ function device(ua){
   return os + " · " + br;
 }
 
+function devLabel(e){
+  let id = "", who = "";
+  if(e.device){ try{ const p = decodeURIComponent(e.device).split("|"); id = p[0] || ""; who = p.slice(1).join("|"); }catch(_){} }
+  return [device(e.ua), who ? "nome usado no aparelho: " + who : "", id ? "aparelho #" + id : ""].filter(Boolean).join(" · ");
+}
+
 function render(){
   const list = entries.filter(e => filter === "ALL" || e.action === filter);
   if(!list.length){ $("log").innerHTML = '<div class="msg">Nada por aqui.</div>'; return; }
@@ -113,7 +119,7 @@ function render(){
     return `<div class="card">
       <div class="top"><div><span class="badge ${esc(e.action)}">${ACTION[e.action] || esc(e.action)}</span> <b>${esc(TABLE[e.tbl] || e.tbl)}</b>${title ? " · " + title : ""}</div><span class="tag">${esc(when)}</span></div>
       <div class="what">${body}</div>
-      <div class="tag" style="margin-top:8px">${esc(device(e.ua))}${e.ip ? " · IP " + esc(e.ip) : ""}</div>
+      <div class="tag" style="margin-top:8px">${esc(devLabel(e))}</div>
     </div>`;
   }).join("");
 }
