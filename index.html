@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b0a10">
 <title>Festa de Ano Novo</title>
 <style>
-  :root{color-scheme:dark;--bg:#0b0a10;--card:#17141f;--card2:#1e1a29;--line:#2e2742;--gold:#c4a7ff;--text:#f1eef7;--mut:#a79fbd;--ok:#6fd49a;--no:#e98a8a}
+  :root{color-scheme:dark;--bg:#0b0a10;--card:#16121f;--card2:#1e1a29;--line:#352c4f;--field:#2b2342;--fieldb:#6b58a0;--gold:#c4a7ff;--text:#f1eef7;--mut:#a79fbd;--ok:#6fd49a;--no:#e98a8a}
   *{box-sizing:border-box}
   html{scroll-padding-top:80px}
   body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#2b1f4a,var(--bg));background-attachment:fixed;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
@@ -22,26 +22,27 @@
   .tabs button{flex:1;padding:12px;border-radius:11px;border:0;background:transparent;color:var(--text);font-size:15px;cursor:pointer}
   .tabs button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid #3d3360;box-shadow:0 8px 24px rgba(0,0,0,.35);border-radius:14px;padding:16px;margin-bottom:16px}
   .cardTitle{font-weight:700;font-size:17px;margin-bottom:2px}
   .sec{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
   .sec.first{border-top:0;padding-top:0;margin-top:8px}
   h3{font-size:15px;margin:0 0 2px;color:var(--gold)}
   h3 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:4px}
-  label{display:block;font-size:13px;color:var(--mut);margin:12px 0 5px}
+  label{display:block;font-size:13px;font-weight:600;color:#cfc3ee;margin:12px 0 5px}
   .hint{font-size:12px;color:var(--mut);margin-top:5px}
-  input[type=text]{width:100%;padding:13px 12px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:16px}
-  input[type=text]:focus{border-color:var(--gold)}
+  input[type=text]{width:100%;padding:13px 12px;border-radius:10px;border:1.5px solid var(--fieldb);box-shadow:inset 0 1px 3px rgba(0,0,0,.35);background:var(--field);color:var(--text);font-size:16px}
+  input[type=text]:focus{border-color:var(--gold);outline:0;background:#33294f;box-shadow:0 0 0 3px rgba(196,167,255,.28)}
+  input::placeholder{color:#8c80ad}
   .bad{border-color:var(--no)!important;box-shadow:0 0 0 2px rgba(233,138,138,.3)}
   .seg{display:flex;gap:8px}
-  .seg button{flex:1;padding:13px 8px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:15px;cursor:pointer}
+  .seg button{flex:1;padding:13px 8px;border-radius:10px;border:1.5px solid var(--fieldb);background:var(--field);color:var(--text);font-size:15px;cursor:pointer}
   .seg button.on,.chips button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:600}
   .chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .chips button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:12px 8px;min-height:64px;border-radius:12px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:14px;cursor:pointer;text-align:center}
+  .chips button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:12px 8px;min-height:64px;border-radius:12px;border:1.5px solid var(--fieldb);background:var(--field);color:var(--text);font-size:14px;cursor:pointer;text-align:center}
   .chips button .em{font-size:22px;line-height:1}
   .chips button small{font-size:11px;opacity:.75;font-weight:400}
   .stepper{display:flex;align-items:center;gap:12px}
-  .stepper button{width:46px;height:46px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:22px;cursor:pointer}
+  .stepper button{width:46px;height:46px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--text);font-size:22px;cursor:pointer}
   .stepper b{min-width:24px;text-align:center;font-size:20px}
   .stepper .tag{font-size:13px}
   .go{width:100%;margin-top:18px;padding:15px;border:0;border-radius:12px;background:var(--gold);color:#1a1a1a;font-size:17px;font-weight:700;cursor:pointer}
@@ -52,7 +53,7 @@
   .chk{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:14px;color:var(--text)}
   .chk input{width:18px;height:18px;accent-color:#c4a7ff}
   .line{display:flex;gap:8px}
-  .sq{flex:0 0 48px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:20px;cursor:pointer}
+  .sq{flex:0 0 48px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--text);font-size:20px;cursor:pointer}
   .sq.add{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700;font-size:24px}
   .photoBtn{display:inline-block;margin:0;padding:10px 14px;border:1px dashed var(--mut);border-radius:10px;color:var(--text);cursor:pointer;font-size:14px}
   .thumb{display:block;margin-top:8px;max-width:100%;max-height:160px;border-radius:10px;border:1px solid var(--line);object-fit:cover}
