@@ -9,7 +9,7 @@
 <style>
   :root{color-scheme:dark;--bg:#0b0a10;--card:#17141f;--card2:#1e1a29;--line:#2e2742;--gold:#c4a7ff;--text:#f1eef7;--mut:#a79fbd;--ok:#6fd49a;--no:#e98a8a}
   *{box-sizing:border-box}
-  html{scroll-padding-top:70px}
+  html{scroll-padding-top:80px}
   body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#2b1f4a,var(--bg));background-attachment:fixed;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
   main{max-width:560px;margin:0 auto;padding:20px 16px 80px}
   h1{font-size:28px;margin:8px 0 4px;color:var(--gold);text-align:center}
@@ -18,8 +18,8 @@
   button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
   /* abas fixas no topo */
-  .tabs{position:sticky;top:0;z-index:10;display:flex;gap:8px;padding:8px 0 12px;margin:0 0 4px;background:linear-gradient(var(--bg) 70%,transparent)}
-  .tabs button{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;cursor:pointer}
+  .tabs{position:sticky;top:8px;z-index:10;display:flex;gap:6px;padding:6px;margin:0 0 16px;background:rgba(23,20,31,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .tabs button{flex:1;padding:12px;border-radius:11px;border:0;background:transparent;color:var(--text);font-size:15px;cursor:pointer}
   .tabs button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
