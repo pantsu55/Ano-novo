@@ -59,7 +59,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 
 let code = "", entries = [], filter = "ALL";
 
-const LABEL = {name:"Nome",status:"Presença",guests:"Pessoas",companions:"Acompanhantes",food:"Comida",drink:"Bebida",onca:"Amigo da onça",gifts:"Presentes",food_photo:"Foto",item:"Item",amount:"Valor",buyer:"Comprador"};
+const LABEL = {name:"Nome",status:"Presença",guests:"Pessoas",companions:"Acompanhantes",food:"Comida",drink:"Bebida",onca:"Amigo da onça",gifts:"Presentes",food_photo:"Foto",foods:"Comidas",drinks:"Bebidas",item:"Item",amount:"Valor",buyer:"Comprador"};
 const TABLE = {party_rsvp:"Presença", party_expenses:"Gastos"};
 const ACTION = {INSERT:"Criou", UPDATE:"Alterou", DELETE:"Removeu"};
 
@@ -69,20 +69,22 @@ function fmt(k, v){
   if(k === "onca") return v ? "sim" : "não";
   if(k === "companions") return Array.isArray(v) && v.length ? v.join(", ") : "—";
   if(k === "food_photo") return "foto";
+  if(k === "foods" || k === "drinks") return Array.isArray(v) && v.length ? v.map(x => x.n + (x.p ? " 📷" : "")).join(", ") : "—";
   if(k === "amount") return "R$ " + Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
   return String(v);
 }
 
 function summary(tbl, r){
   if(!r) return "";
-  const keys = tbl === "party_rsvp" ? ["name","status","guests","companions","food","drink","onca","gifts","food_photo"]
+  const keys = tbl === "party_rsvp" ? (r.foods !== undefined ? ["name","status","guests","companions","foods","drinks","onca","gifts"] : ["name","status","guests","companions","food","drink","onca","gifts","food_photo"])
                                     : ["item","amount","buyer"];
   return keys.filter(k => r[k] !== null && r[k] !== undefined && r[k] !== "" && !(Array.isArray(r[k]) && !r[k].length) && !(k==="onca"&&!r[k]) && !(k==="gifts"&&!r[k]))
              .map(k => `<span class="tag">${LABEL[k]}:</span> ${esc(fmt(k, r[k]))}`).join(" · ");
 }
 
 function diff(tbl, o, n){
-  const keys = Object.keys(LABEL).filter(k => k in (n||{}) || k in (o||{}));
+  const hasNew = "foods" in (n||{}) || "foods" in (o||{});
+  const keys = Object.keys(LABEL).filter(k => (k in (n||{}) || k in (o||{})) && !(hasNew && ["food","drink","food_photo"].includes(k)));
   const out = [];
   keys.forEach(k => {
     if(JSON.stringify(o[k]) !== JSON.stringify(n[k])){

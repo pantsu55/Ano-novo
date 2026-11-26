@@ -38,7 +38,12 @@
   .sub-row .tag{margin-left:4px}
   .photoBtn{display:inline-block;margin:0;padding:10px 14px;border:1px dashed var(--mut);border-radius:10px;color:var(--text);cursor:pointer;font-size:14px}
   .thumb{display:block;margin-top:8px;max-width:100%;max-height:160px;border-radius:10px;border:1px solid var(--line);object-fit:cover}
-  #photoPrev{margin-top:8px}
+  .line{display:flex;gap:8px}
+  .sq{flex:0 0 46px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:20px;cursor:pointer}
+  .sq.add{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700;font-size:24px}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap}
+  .ph{display:block;text-decoration:none}
+  .ph .tag{display:block;margin-top:2px}
   .tabs{display:flex;gap:8px;margin-bottom:16px}
   .tabs button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;cursor:pointer}
   .tabs button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700}
@@ -79,16 +84,11 @@
       </div>
       <div id="compBox"></div>
 
-      <label for="food">Comida que vai levar <span class="tag">(opcional)</span></label>
-      <input id="food" type="text" maxlength="120" placeholder="Ex.: Farofa, salpicão…" autocomplete="off">
-      <div style="margin-top:8px">
-        <label class="photoBtn" for="foodFile">📷 Adicionar foto da comida</label>
-        <input id="foodFile" type="file" accept="image/*" hidden>
-        <div id="photoPrev" hidden><img id="photoImg" class="thumb" alt="Foto da comida"><br><button type="button" class="ghost" id="photoRm">remover foto</button></div>
-      </div>
+      <label>Comida que vai levar <span class="tag">(opcional · use o + para mais de uma)</span></label>
+      <div id="foodList"></div>
 
-      <label for="drink">Bebida que vai levar <span class="tag">(opcional)</span></label>
-      <input id="drink" type="text" maxlength="120" placeholder="Ex.: 2 refris, espumante…" autocomplete="off">
+      <label>Bebida que vai levar <span class="tag">(opcional · use o + para mais de uma)</span></label>
+      <div id="drinkList"></div>
 
       <label>Amigo da onça 🐆</label>
       <div class="seg" id="oncaSeg">
@@ -151,10 +151,12 @@ const whoNow = () => { try { return localStorage.getItem("festa_who") || ""; } c
 const H = {apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json", get "x-client-info"(){ return encodeURIComponent(devId+"|"+whoNow()); }};
 const $ = id => document.getElementById(id);
 
-let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1, exps = [], foodPhoto = null;
+let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1, exps = [], foodsList = [{n:"",p:null}], drinksList = [{n:""}];
 const SUPA = "https://ksucnjrmcagzepxahync.supabase.co";
 const STORE = SUPA + "/storage/v1/object/public/party-photos/";
 const okPhoto = u => typeof u === "string" && u.startsWith(STORE);
+const getFoods = r => (Array.isArray(r.foods) && r.foods.length) ? r.foods.filter(f=>f && f.n) : (r.food ? [{n:r.food, p:r.food_photo}] : []);
+const getDrinks = r => (Array.isArray(r.drinks) && r.drinks.length) ? r.drinks.filter(d=>d && d.n) : (r.drink ? [{n:r.drink}] : []);
 const URL_E = "https://ksucnjrmcagzepxahync.supabase.co/rest/v1/party_expenses";
 const mine = () => { try { return JSON.parse(localStorage.getItem("festa_mine")||"[]"); } catch(e){ return []; } };
 const addMine = id => { try { localStorage.setItem("festa_mine", JSON.stringify([...new Set([...mine(), id])])); } catch(e){} };
@@ -171,8 +173,7 @@ function renderForm(){
   document.querySelectorAll("#oncaSeg button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="1")===onca));
   $("giftBox").hidden = !onca;
   $("giftsN").textContent = gifts;
-  $("photoPrev").hidden = !foodPhoto;
-  if(foodPhoto) $("photoImg").src = foodPhoto;
+  renderLists();
   const box = $("compBox");
   box.innerHTML = "";
   for(let i=0;i<guests-1;i++){
@@ -188,6 +189,62 @@ function renderForm(){
   $("save").textContent = editingId ? "Salvar alterações" : "Confirmar";
   $("cancelEdit").hidden = !editingId;
 }
+function renderLists(){
+  const mk = (id, arr, kind) => {
+    const box = $(id); box.innerHTML = "";
+    arr.forEach((it, i) => {
+      const wrap = document.createElement("div"); wrap.style.marginBottom = "10px";
+      const line = document.createElement("div"); line.className = "line";
+      const inp = document.createElement("input");
+      inp.type = "text"; inp.maxLength = 120; inp.autocomplete = "off";
+      inp.placeholder = kind === "food" ? "Ex.: Farofa, salpicão…" : "Ex.: 2 refris, espumante…";
+      inp.value = it.n || "";
+      inp.oninput = () => { it.n = inp.value; };
+      line.appendChild(inp);
+      if(arr.length > 1){
+        const rm = document.createElement("button");
+        rm.type = "button"; rm.className = "sq"; rm.textContent = "✕"; rm.title = "Remover";
+        rm.onclick = () => { arr.splice(i, 1); renderForm(); };
+        line.appendChild(rm);
+      }
+      if(i === arr.length - 1 && arr.length < 10){
+        const add = document.createElement("button");
+        add.type = "button"; add.className = "sq add"; add.textContent = "+";
+        add.title = kind === "food" ? "Adicionar outra comida" : "Adicionar outra bebida";
+        add.onclick = () => {
+          arr.push(kind === "food" ? {n:"", p:null} : {n:""});
+          renderForm();
+          const ins = $(id).querySelectorAll("input[type=text]"); ins[ins.length - 1].focus();
+        };
+        line.appendChild(add);
+      }
+      wrap.appendChild(line);
+      if(kind === "food"){
+        const pl = document.createElement("div"); pl.style.marginTop = "6px";
+        const fileId = id + "File" + i;
+        const lab = document.createElement("label");
+        lab.className = "photoBtn"; lab.htmlFor = fileId;
+        lab.textContent = it.p ? "📷 Trocar foto" : "📷 Adicionar foto";
+        const file = document.createElement("input");
+        file.type = "file"; file.accept = "image/*"; file.hidden = true; file.id = fileId;
+        file.onchange = e => { const f = e.target.files[0]; e.target.value = ""; if(f) uploadPhoto(f, it); };
+        pl.appendChild(lab); pl.appendChild(file);
+        if(okPhoto(it.p)){
+          const img = document.createElement("img");
+          img.className = "thumb"; img.src = it.p; img.alt = "Foto da comida";
+          const rmp = document.createElement("button");
+          rmp.type = "button"; rmp.className = "ghost"; rmp.textContent = "remover foto";
+          rmp.onclick = () => { it.p = null; renderForm(); };
+          pl.appendChild(img); pl.appendChild(rmp);
+        }
+        wrap.appendChild(pl);
+      }
+      box.appendChild(wrap);
+    });
+  };
+  mk("foodList", foodsList, "food");
+  mk("drinkList", drinksList, "drink");
+}
 document.querySelectorAll("#statusSeg button").forEach(b=>b.onclick=()=>{status=b.dataset.v;renderForm();});
 document.querySelectorAll("#oncaSeg button").forEach(b=>b.onclick=()=>{onca=b.dataset.v==="1";if(onca&&gifts<1)gifts=1;renderForm();});
 $("gMinus").onclick=()=>{gifts=Math.max(1,gifts-1);renderForm();};
@@ -195,7 +252,7 @@ $("gPlus").onclick=()=>{gifts=Math.min(20,gifts+1);renderForm();};
 $("minus").onclick=()=>{guests=Math.max(1,guests-1);renderForm();};
 $("plus").onclick=()=>{guests=Math.min(10,guests+1);renderForm();};
 
-function resetForm(){ editingId=null; status="vou"; guests=1; companions=[]; onca=false; gifts=1; foodPhoto=null; $("name").value=""; $("food").value=""; $("drink").value=""; renderForm(); }
+function resetForm(){ editingId=null; status="vou"; guests=1; companions=[]; onca=false; gifts=1; foodsList=[{n:"",p:null}]; drinksList=[{n:""}]; $("name").value=""; renderForm(); }
 $("cancelEdit").onclick=resetForm;
 
 async function load(){
@@ -210,8 +267,8 @@ async function load(){
 function renderList(){
   const yes = rows.filter(r=>r.status==="vou"), no = rows.filter(r=>r.status!=="vou");
   $("sPeople").textContent = yes.reduce((a,r)=>a+r.guests,0);
-  $("sFood").textContent = yes.filter(r=>r.food&&r.food.trim()).length;
-  $("sDrink").textContent = yes.filter(r=>r.drink&&r.drink.trim()).length;
+  $("sFood").textContent = yes.reduce((a,r)=>a+getFoods(r).length,0);
+  $("sDrink").textContent = yes.reduce((a,r)=>a+getDrinks(r).length,0);
   const oncaYes = yes.filter(r=>r.onca);
   $("sGifts").textContent = oncaYes.reduce((a,r)=>a+(r.gifts||0),0);
   $("oncaLine").textContent = "🐆 Amigo da onça: " + oncaYes.length + (oncaYes.length===1?" participante":" participantes");
@@ -223,8 +280,8 @@ function renderList(){
         <div><span class="name">${esc(r.name)}</span> ${r.status==='vou' ? `<span class="tag">· ${r.guests===1?'1 pessoa':r.guests===2?'casal':r.guests+' pessoas'}</span>`:''}</div>
         ${m.includes(r.id) ? `<div><button class="ghost" data-edit="${r.id}">editar</button><button class="ghost" data-del="${r.id}">remover</button></div>`:''}
       </div>
-      ${r.status==='vou' && (r.food||r.drink||r.onca) ? `<div class="meta">${[r.food?`🍽️ ${esc(r.food)}`:'', r.drink?`🥂 ${esc(r.drink)}`:'', r.onca?`🐆 Amigo da onça · ${r.gifts} ${r.gifts===1?'presente':'presentes'}`:''].filter(Boolean).join('<br>')}</div>`:''}
-      ${r.status==='vou' && okPhoto(r.food_photo) ? `<a href="${esc(r.food_photo)}" target="_blank" rel="noopener"><img class="thumb" src="${esc(r.food_photo)}" alt="Foto de ${esc(r.food||'comida')}" loading="lazy"></a>`:''}
+      ${r.status==='vou' && (getFoods(r).length||getDrinks(r).length||r.onca) ? `<div class="meta">${[getFoods(r).length?`🍽️ ${getFoods(r).map(f=>esc(f.n)).join(' · ')}`:'', getDrinks(r).length?`🥂 ${getDrinks(r).map(d=>esc(d.n)).join(' · ')}`:'', r.onca?`🐆 Amigo da onça · ${r.gifts} ${r.gifts===1?'presente':'presentes'}`:''].filter(Boolean).join('<br>')}</div>`:''}
+      ${r.status==='vou' && getFoods(r).some(f=>okPhoto(f.p)) ? `<div class="thumbs">${getFoods(r).filter(f=>okPhoto(f.p)).map(f=>`<a class="ph" href="${esc(f.p)}" target="_blank" rel="noopener"><img class="thumb" src="${esc(f.p)}" alt="Foto de ${esc(f.n)}" loading="lazy"><span class="tag">${esc(f.n)}</span></a>`).join('')}</div>`:''}
     </div>` + (r.status==='vou' ? (r.companions||[]).filter(c=>c&&c.trim()).map(c=>`<div class="sub-row">↳ ${esc(c)} <span class="tag">com ${esc(r.name)}</span></div>`).join('') : '');
   let h = "";
   if(yes.length) h += `<h2>Confirmados (${yes.length})</h2>` + yes.map(item).join("");
@@ -236,7 +293,7 @@ $("list").onclick = async e => {
   const ed = e.target.dataset.edit, del = e.target.dataset.del;
   if(ed){
     const r = rows.find(x=>x.id===ed); if(!r) return;
-    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])]; onca=!!r.onca; gifts=r.gifts>0?r.gifts:1; foodPhoto=okPhoto(r.food_photo)?r.food_photo:null; $("name").value=r.name; $("food").value=r.food||""; $("drink").value=r.drink||"";
+    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])]; onca=!!r.onca; gifts=r.gifts>0?r.gifts:1; foodsList=getFoods(r).map(f=>({n:f.n,p:okPhoto(f.p)?f.p:null})); if(!foodsList.length) foodsList=[{n:"",p:null}]; drinksList=getDrinks(r).map(d=>({n:d.n})); if(!drinksList.length) drinksList=[{n:""}]; $("name").value=r.name;
     renderForm(); window.scrollTo({top:0,behavior:"smooth"});
   }
   if(del && confirm("Remover sua confirmação?")){
@@ -251,7 +308,13 @@ $("save").onclick = async () => {
   try{ localStorage.setItem("festa_who", name); }catch(e){}
   const going = status==="vou";
   const comps = going ? Array.from({length:guests-1}, (_,i)=>(companions[i]||"").trim().slice(0,80)).filter(Boolean) : [];
-  const body = { name, status, guests: going?guests:1, companions: comps, food_photo: going?foodPhoto:null, onca: going&&onca, gifts: going&&onca?gifts:0, food: going?($("food").value.trim()||null):null, drink: going?($("drink").value.trim()||null):null };
+  const foods = going ? foodsList.map(f=>({n:(f.n||"").trim().slice(0,120), p:okPhoto(f.p)?f.p:null})).filter(f=>f.n).slice(0,10).map(f=>f.p?f:{n:f.n}) : [];
+  const drinks = going ? drinksList.map(d=>({n:(d.n||"").trim().slice(0,120)})).filter(d=>d.n).slice(0,10) : [];
+  const body = { name, status, guests: going?guests:1, companions: comps, onca: going&&onca, gifts: going&&onca?gifts:0,
+    foods, drinks,
+    food: foods.length ? foods.map(f=>f.n).join(", ").slice(0,120) : null,
+    drink: drinks.length ? drinks.map(d=>d.n).join(", ").slice(0,120) : null,
+    food_photo: (foods.find(f=>f.p)||{}).p || null };
   $("save").disabled = true;
   try{
     let r;
@@ -285,20 +348,17 @@ function resizeImg(file){
     img.src = u;
   });
 }
-$("foodFile").onchange = async e => {
-  const f = e.target.files[0]; e.target.value = "";
-  if(!f) return;
+async function uploadPhoto(f, it){
   $("save").disabled = true; toast("Enviando foto…");
   try{
     const blob = await resizeImg(f);
     const name = crypto.randomUUID()+".jpg";
     const r = await fetch(SUPA+"/storage/v1/object/party-photos/"+name, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"image/jpeg"}, body:blob});
     if(!r.ok) throw new Error(r.status);
-    foodPhoto = STORE+name; renderForm(); toast("Foto adicionada!");
+    it.p = STORE+name; renderForm(); toast("Foto adicionada!");
   }catch(err){ toast("Não consegui enviar a foto"); }
   $("save").disabled = false;
-};
-$("photoRm").onclick = () => { foodPhoto = null; renderForm(); };
+}
 
 /* ---------- Abas ---------- */
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
