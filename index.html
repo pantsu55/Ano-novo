@@ -34,6 +34,8 @@
   .meta{margin-top:6px;font-size:14px;color:var(--text)}
   .meta span{color:var(--mut)}
   .no .name{color:var(--no)}
+  .sub-row{margin:-4px 0 8px 18px;padding:8px 12px;border-left:2px solid var(--gold);background:rgba(24,29,71,.6);border-radius:0 10px 10px 0;font-size:14px}
+  .sub-row .tag{margin-left:4px}
   .msg{text-align:center;color:var(--mut);padding:12px}
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#0a2a18;padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none}
   .toast.show{opacity:1}
@@ -61,6 +63,7 @@
         <button type="button" id="minus">−</button><span id="guests">1</span><button type="button" id="plus">+</button>
         <span class="tag" id="guestsHint">sozinho(a)</span>
       </div>
+      <div id="compBox"></div>
 
       <label for="food">Comida que vai levar <span class="tag">(opcional)</span></label>
       <input id="food" type="text" maxlength="120" placeholder="Ex.: Farofa, salpicão…" autocomplete="off">
@@ -89,7 +92,7 @@ const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 const H = {apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"};
 const $ = id => document.getElementById(id);
 
-let status = "vou", guests = 1, editingId = null, rows = [];
+let status = "vou", guests = 1, editingId = null, rows = [], companions = [];
 const mine = () => { try { return JSON.parse(localStorage.getItem("festa_mine")||"[]"); } catch(e){ return []; } };
 const addMine = id => { try { localStorage.setItem("festa_mine", JSON.stringify([...new Set([...mine(), id])])); } catch(e){} };
 
@@ -102,6 +105,17 @@ function renderForm(){
   $("goingFields").style.display = status==="vou" ? "" : "none";
   $("guests").textContent = guests;
   $("guestsHint").textContent = guests===1 ? "sozinho(a)" : guests===2 ? "casal" : guests+" pessoas";
+  const box = $("compBox");
+  box.innerHTML = "";
+  for(let i=0;i<guests-1;i++){
+    const lab = document.createElement("label");
+    lab.textContent = guests===2 ? "Nome do(a) acompanhante" : "Nome do(a) acompanhante "+(i+1);
+    const inp = document.createElement("input");
+    inp.type="text"; inp.maxLength=80; inp.autocomplete="off"; inp.placeholder="Ex.: João";
+    inp.value = companions[i] || "";
+    inp.oninput = () => { companions[i] = inp.value; };
+    box.appendChild(lab); box.appendChild(inp);
+  }
   $("formTitle").textContent = editingId ? "Editar confirmação" : "Sua confirmação";
   $("save").textContent = editingId ? "Salvar alterações" : "Confirmar";
   $("cancelEdit").hidden = !editingId;
@@ -110,7 +124,7 @@ document.querySelectorAll("#statusSeg button").forEach(b=>b.onclick=()=>{status=
 $("minus").onclick=()=>{guests=Math.max(1,guests-1);renderForm();};
 $("plus").onclick=()=>{guests=Math.min(10,guests+1);renderForm();};
 
-function resetForm(){ editingId=null; status="vou"; guests=1; $("name").value=""; $("food").value=""; $("drink").value=""; renderForm(); }
+function resetForm(){ editingId=null; status="vou"; guests=1; companions=[]; $("name").value=""; $("food").value=""; $("drink").value=""; renderForm(); }
 $("cancelEdit").onclick=resetForm;
 
 async function load(){
@@ -135,7 +149,7 @@ function renderList(){
         ${m.includes(r.id) ? `<div><button class="ghost" data-edit="${r.id}">editar</button><button class="ghost" data-del="${r.id}">remover</button></div>`:''}
       </div>
       ${r.status==='vou' && (r.food||r.drink) ? `<div class="meta">${r.food?`🍽️ ${esc(r.food)}`:''}${r.food&&r.drink?'<br>':''}${r.drink?`🥂 ${esc(r.drink)}`:''}</div>`:''}
-    </div>`;
+    </div>` + (r.status==='vou' ? (r.companions||[]).filter(c=>c&&c.trim()).map(c=>`<div class="sub-row">↳ ${esc(c)} <span class="tag">com ${esc(r.name)}</span></div>`).join('') : '');
   let h = "";
   if(yes.length) h += `<h2>Confirmados (${yes.length})</h2>` + yes.map(item).join("");
   if(no.length) h += `<h2>Não vão (${no.length})</h2>` + no.map(item).join("");
@@ -146,7 +160,7 @@ $("list").onclick = async e => {
   const ed = e.target.dataset.edit, del = e.target.dataset.del;
   if(ed){
     const r = rows.find(x=>x.id===ed); if(!r) return;
-    editingId=r.id; status=r.status; guests=r.guests; $("name").value=r.name; $("food").value=r.food||""; $("drink").value=r.drink||"";
+    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])]; $("name").value=r.name; $("food").value=r.food||""; $("drink").value=r.drink||"";
     renderForm(); window.scrollTo({top:0,behavior:"smooth"});
   }
   if(del && confirm("Remover sua confirmação?")){
@@ -159,7 +173,8 @@ $("save").onclick = async () => {
   const name = $("name").value.trim();
   if(!name){ toast("Digite seu nome"); $("name").focus(); return; }
   const going = status==="vou";
-  const body = { name, status, guests: going?guests:1, food: going?($("food").value.trim()||null):null, drink: going?($("drink").value.trim()||null):null };
+  const comps = going ? Array.from({length:guests-1}, (_,i)=>(companions[i]||"").trim().slice(0,80)).filter(Boolean) : [];
+  const body = { name, status, guests: going?guests:1, companions: comps, food: going?($("food").value.trim()||null):null, drink: going?($("drink").value.trim()||null):null };
   $("save").disabled = true;
   try{
     let r;
