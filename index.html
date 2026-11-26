@@ -70,6 +70,18 @@
 
       <label for="drink">Bebida que vai levar <span class="tag">(opcional)</span></label>
       <input id="drink" type="text" maxlength="120" placeholder="Ex.: 2 refris, espumante…" autocomplete="off">
+
+      <label>Amigo da onça 🐆</label>
+      <div class="seg" id="oncaSeg">
+        <button type="button" data-v="1">Vou participar</button>
+        <button type="button" data-v="0" class="on">Não vou</button>
+      </div>
+      <div id="giftBox" hidden>
+        <label>Quantos presentinhos vai levar?</label>
+        <div class="stepper">
+          <button type="button" id="gMinus">−</button><span id="giftsN">1</span><button type="button" id="gPlus">+</button>
+        </div>
+      </div>
     </div>
 
     <button class="go" id="save">Confirmar</button>
@@ -80,7 +92,9 @@
     <div class="stat"><b id="sPeople">0</b><small>pessoas</small></div>
     <div class="stat"><b id="sFood">0</b><small>comidas</small></div>
     <div class="stat"><b id="sDrink">0</b><small>bebidas</small></div>
+    <div class="stat"><b id="sGifts">0</b><small>presentes</small></div>
   </div>
+  <div class="msg" id="oncaLine" style="padding:0 0 12px"></div>
 
   <div id="list"><div class="msg">Carregando…</div></div>
 </main>
@@ -92,7 +106,7 @@ const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 const H = {apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"};
 const $ = id => document.getElementById(id);
 
-let status = "vou", guests = 1, editingId = null, rows = [], companions = [];
+let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1;
 const mine = () => { try { return JSON.parse(localStorage.getItem("festa_mine")||"[]"); } catch(e){ return []; } };
 const addMine = id => { try { localStorage.setItem("festa_mine", JSON.stringify([...new Set([...mine(), id])])); } catch(e){} };
 
@@ -105,6 +119,9 @@ function renderForm(){
   $("goingFields").style.display = status==="vou" ? "" : "none";
   $("guests").textContent = guests;
   $("guestsHint").textContent = guests===1 ? "sozinho(a)" : guests===2 ? "casal" : guests+" pessoas";
+  document.querySelectorAll("#oncaSeg button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="1")===onca));
+  $("giftBox").hidden = !onca;
+  $("giftsN").textContent = gifts;
   const box = $("compBox");
   box.innerHTML = "";
   for(let i=0;i<guests-1;i++){
@@ -121,10 +138,13 @@ function renderForm(){
   $("cancelEdit").hidden = !editingId;
 }
 document.querySelectorAll("#statusSeg button").forEach(b=>b.onclick=()=>{status=b.dataset.v;renderForm();});
+document.querySelectorAll("#oncaSeg button").forEach(b=>b.onclick=()=>{onca=b.dataset.v==="1";if(onca&&gifts<1)gifts=1;renderForm();});
+$("gMinus").onclick=()=>{gifts=Math.max(1,gifts-1);renderForm();};
+$("gPlus").onclick=()=>{gifts=Math.min(20,gifts+1);renderForm();};
 $("minus").onclick=()=>{guests=Math.max(1,guests-1);renderForm();};
 $("plus").onclick=()=>{guests=Math.min(10,guests+1);renderForm();};
 
-function resetForm(){ editingId=null; status="vou"; guests=1; companions=[]; $("name").value=""; $("food").value=""; $("drink").value=""; renderForm(); }
+function resetForm(){ editingId=null; status="vou"; guests=1; companions=[]; onca=false; gifts=1; $("name").value=""; $("food").value=""; $("drink").value=""; renderForm(); }
 $("cancelEdit").onclick=resetForm;
 
 async function load(){
@@ -141,6 +161,9 @@ function renderList(){
   $("sPeople").textContent = yes.reduce((a,r)=>a+r.guests,0);
   $("sFood").textContent = yes.filter(r=>r.food&&r.food.trim()).length;
   $("sDrink").textContent = yes.filter(r=>r.drink&&r.drink.trim()).length;
+  const oncaYes = yes.filter(r=>r.onca);
+  $("sGifts").textContent = oncaYes.reduce((a,r)=>a+(r.gifts||0),0);
+  $("oncaLine").textContent = "🐆 Amigo da onça: " + oncaYes.length + (oncaYes.length===1?" participante":" participantes");
   const m = mine();
   const item = r => `
     <div class="row ${r.status==='vou'?'':'no'}">
@@ -148,7 +171,7 @@ function renderList(){
         <div><span class="name">${esc(r.name)}</span> ${r.status==='vou' ? `<span class="tag">· ${r.guests===1?'1 pessoa':r.guests===2?'casal':r.guests+' pessoas'}</span>`:''}</div>
         ${m.includes(r.id) ? `<div><button class="ghost" data-edit="${r.id}">editar</button><button class="ghost" data-del="${r.id}">remover</button></div>`:''}
       </div>
-      ${r.status==='vou' && (r.food||r.drink) ? `<div class="meta">${r.food?`🍽️ ${esc(r.food)}`:''}${r.food&&r.drink?'<br>':''}${r.drink?`🥂 ${esc(r.drink)}`:''}</div>`:''}
+      ${r.status==='vou' && (r.food||r.drink||r.onca) ? `<div class="meta">${[r.food?`🍽️ ${esc(r.food)}`:'', r.drink?`🥂 ${esc(r.drink)}`:'', r.onca?`🐆 Amigo da onça · ${r.gifts} ${r.gifts===1?'presente':'presentes'}`:''].filter(Boolean).join('<br>')}</div>`:''}
     </div>` + (r.status==='vou' ? (r.companions||[]).filter(c=>c&&c.trim()).map(c=>`<div class="sub-row">↳ ${esc(c)} <span class="tag">com ${esc(r.name)}</span></div>`).join('') : '');
   let h = "";
   if(yes.length) h += `<h2>Confirmados (${yes.length})</h2>` + yes.map(item).join("");
@@ -160,7 +183,7 @@ $("list").onclick = async e => {
   const ed = e.target.dataset.edit, del = e.target.dataset.del;
   if(ed){
     const r = rows.find(x=>x.id===ed); if(!r) return;
-    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])]; $("name").value=r.name; $("food").value=r.food||""; $("drink").value=r.drink||"";
+    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])]; onca=!!r.onca; gifts=r.gifts>0?r.gifts:1; $("name").value=r.name; $("food").value=r.food||""; $("drink").value=r.drink||"";
     renderForm(); window.scrollTo({top:0,behavior:"smooth"});
   }
   if(del && confirm("Remover sua confirmação?")){
@@ -174,7 +197,7 @@ $("save").onclick = async () => {
   if(!name){ toast("Digite seu nome"); $("name").focus(); return; }
   const going = status==="vou";
   const comps = going ? Array.from({length:guests-1}, (_,i)=>(companions[i]||"").trim().slice(0,80)).filter(Boolean) : [];
-  const body = { name, status, guests: going?guests:1, companions: comps, food: going?($("food").value.trim()||null):null, drink: going?($("drink").value.trim()||null):null };
+  const body = { name, status, guests: going?guests:1, companions: comps, onca: going&&onca, gifts: going&&onca?gifts:0, food: going?($("food").value.trim()||null):null, drink: going?($("drink").value.trim()||null):null };
   $("save").disabled = true;
   try{
     let r;
