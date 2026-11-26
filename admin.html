@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Histórico — Festa de Ano Novo</title>
+<style>
+  :root{--bg:#0e1230;--card:#181d47;--line:#2a3070;--gold:#f4c95d;--text:#f3f1ea;--mut:#a9aed6;--ok:#6fd49a;--no:#e98a8a;--mid:#7fb2ff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+  main{max-width:720px;margin:0 auto;padding:24px 16px 60px}
+  h1{font-size:22px;margin:8px 0 16px;color:var(--gold)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+  input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#10143a;color:var(--text);font-size:16px}
+  button{cursor:pointer;font-size:14px}
+  .go{width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:var(--gold);color:#1a1a1a;font-weight:700;font-size:16px}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .filters button{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+  .filters button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:600}
+  .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+  .badge{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;color:#10143a}
+  .INSERT{background:var(--ok)} .UPDATE{background:var(--mid)} .DELETE{background:var(--no)}
+  .tag{font-size:12px;color:var(--mut)}
+  .what{margin-top:8px;font-size:14px;line-height:1.5}
+  .what s{color:var(--no)} .what b{color:var(--ok);font-weight:600}
+  .msg{text-align:center;color:var(--mut);padding:16px}
+  .err{color:var(--no);margin-top:8px;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+  <h1>🔒 Histórico de modificações</h1>
+
+  <div class="card" id="login">
+    <label for="code" class="tag">Código de acesso</label>
+    <input id="code" type="password" autocomplete="off" placeholder="XXXX-XXXX-XXXX">
+    <button class="go" id="enter">Entrar</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div id="app" hidden>
+    <div class="filters" id="filters">
+      <button class="on" data-f="ALL">Tudo</button>
+      <button data-f="DELETE">Remoções</button>
+      <button data-f="UPDATE">Alterações</button>
+      <button data-f="INSERT">Criações</button>
+      <button id="refresh" style="margin-left:auto">↻ Atualizar</button>
+    </div>
+    <div id="log"><div class="msg">Carregando…</div></div>
+  </div>
+</main>
+
+<script>
+const SUPA = "https://ksucnjrmcagzepxahync.supabase.co";
+const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzdWNuanJtY2FnemVweGFoeW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNDM0NDQsImV4cCI6MjEwODcxOTQ0NH0.BSj6kWbL7tt4Elea3YxNOlDUPmEiXkM1dURLHlU8Wzo";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let code = "", entries = [], filter = "ALL";
+
+const LABEL = {name:"Nome",status:"Presença",guests:"Pessoas",companions:"Acompanhantes",food:"Comida",drink:"Bebida",onca:"Amigo da onça",gifts:"Presentes",food_photo:"Foto",item:"Item",amount:"Valor",buyer:"Comprador"};
+const TABLE = {party_rsvp:"Presença", party_expenses:"Gastos"};
+const ACTION = {INSERT:"Criou", UPDATE:"Alterou", DELETE:"Removeu"};
+
+function fmt(k, v){
+  if(v === null || v === undefined || v === "") return "—";
+  if(k === "status") return v === "vou" ? "vai" : "não vai";
+  if(k === "onca") return v ? "sim" : "não";
+  if(k === "companions") return Array.isArray(v) && v.length ? v.join(", ") : "—";
+  if(k === "food_photo") return "foto";
+  if(k === "amount") return "R$ " + Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
+  return String(v);
+}
+
+function summary(tbl, r){
+  if(!r) return "";
+  const keys = tbl === "party_rsvp" ? ["name","status","guests","companions","food","drink","onca","gifts","food_photo"]
+                                    : ["item","amount","buyer"];
+  return keys.filter(k => r[k] !== null && r[k] !== undefined && r[k] !== "" && !(Array.isArray(r[k]) && !r[k].length) && !(k==="onca"&&!r[k]) && !(k==="gifts"&&!r[k]))
+             .map(k => `<span class="tag">${LABEL[k]}:</span> ${esc(fmt(k, r[k]))}`).join(" · ");
+}
+
+function diff(tbl, o, n){
+  const keys = Object.keys(LABEL).filter(k => k in (n||{}) || k in (o||{}));
+  const out = [];
+  keys.forEach(k => {
+    if(JSON.stringify(o[k]) !== JSON.stringify(n[k])){
+      out.push(`<div><span class="tag">${LABEL[k]}:</span> <s>${esc(fmt(k,o[k]))}</s> → <b>${esc(fmt(k,n[k]))}</b></div>`);
+    }
+  });
+  return out.join("") || '<span class="tag">Nenhuma mudança de conteúdo</span>';
+}
+
+function device(ua){
+  if(!ua) return "";
+  const os = /iPhone|iPad/.test(ua) ? "iPhone/iPad" : /Android/.test(ua) ? "Android" : /Windows/.test(ua) ? "Windows" : /Mac OS X/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "outro";
+  const br = /Edg\//.test(ua) ? "Edge" : /OPR\//.test(ua) ? "Opera" : /Chrome|CriOS/.test(ua) ? "Chrome" : /Firefox|FxiOS/.test(ua) ? "Firefox" : /Safari/.test(ua) ? "Safari" : "navegador";
+  return os + " · " + br;
+}
+
+function render(){
+  const list = entries.filter(e => filter === "ALL" || e.action === filter);
+  if(!list.length){ $("log").innerHTML = '<div class="msg">Nada por aqui.</div>'; return; }
+  $("log").innerHTML = list.map(e => {
+    const when = new Date(e.at).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    let body;
+    if(e.action === "INSERT") body = summary(e.tbl, e.new_row);
+    else if(e.action === "DELETE") body = summary(e.tbl, e.old_row);
+    else body = diff(e.tbl, e.old_row || {}, e.new_row || {});
+    const who = (e.new_row || e.old_row || {});
+    const title = esc(who.name || who.item || "");
+    return `<div class="card">
+      <div class="top"><div><span class="badge ${esc(e.action)}">${ACTION[e.action] || esc(e.action)}</span> <b>${esc(TABLE[e.tbl] || e.tbl)}</b>${title ? " · " + title : ""}</div><span class="tag">${esc(when)}</span></div>
+      <div class="what">${body}</div>
+      <div class="tag" style="margin-top:8px">${esc(device(e.ua))}${e.ip ? " · IP " + esc(e.ip) : ""}</div>
+    </div>`;
+  }).join("");
+}
+
+async function load(){
+  $("log").innerHTML = '<div class="msg">Carregando…</div>';
+  const r = await fetch(SUPA + "/rest/v1/rpc/party_get_log", {
+    method: "POST",
+    headers: {apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json"},
+    body: JSON.stringify({code, lim: 1000})
+  });
+  if(!r.ok){
+    try{ sessionStorage.removeItem("festa_admin"); }catch(e){}
+    $("app").hidden = true; $("login").hidden = false;
+    $("err").textContent = r.status === 400 || r.status === 401 || r.status === 403 ? "Código inválido." : "Erro ao carregar. Tente de novo.";
+    return;
+  }
+  entries = await r.json();
+  $("login").hidden = true; $("app").hidden = false; $("err").textContent = "";
+  render();
+}
+
+$("enter").onclick = () => {
+  code = $("code").value.trim().toUpperCase();
+  if(!code) return;
+  try{ sessionStorage.setItem("festa_admin", code); }catch(e){}
+  load();
+};
+$("code").onkeydown = e => { if(e.key === "Enter") $("enter").click(); };
+$("refresh").onclick = load;
+$("filters").onclick = e => {
+  const f = e.target.dataset.f; if(!f) return;
+  filter = f;
+  document.querySelectorAll("#filters button[data-f]").forEach(b => b.classList.toggle("on", b.dataset.f === f));
+  render();
+};
+
+try{ const s = sessionStorage.getItem("festa_admin"); if(s){ code = s; load(); } }catch(e){}
+</script>
+</body>
+</html>
