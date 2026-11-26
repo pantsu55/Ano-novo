@@ -3,195 +3,264 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0a10">
 <title>Festa de Ano Novo</title>
 <style>
-  :root{--bg:#0b0a10;--card:#17141f;--line:#2e2742;--gold:#c4a7ff;--text:#f1eef7;--mut:#a79fbd;--ok:#6fd49a;--no:#e98a8a}
+  :root{color-scheme:dark;--bg:#0b0a10;--card:#17141f;--card2:#1e1a29;--line:#2e2742;--gold:#c4a7ff;--text:#f1eef7;--mut:#a79fbd;--ok:#6fd49a;--no:#e98a8a}
   *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#2b1f4a,var(--bg));color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
-  main{max-width:560px;margin:0 auto;padding:24px 16px 60px}
+  html{scroll-padding-top:70px}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#2b1f4a,var(--bg));background-attachment:fixed;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
+  main{max-width:560px;margin:0 auto;padding:20px 16px 80px}
   h1{font-size:28px;margin:8px 0 4px;color:var(--gold);text-align:center}
-  .sub{text-align:center;color:var(--mut);margin:0 0 20px}
+  .sub{text-align:center;color:var(--mut);margin:0 0 14px}
+  button{font-family:inherit}
+  button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  /* abas fixas no topo */
+  .tabs{position:sticky;top:0;z-index:10;display:flex;gap:8px;padding:8px 0 12px;margin:0 0 4px;background:linear-gradient(var(--bg) 70%,transparent)}
+  .tabs button{flex:1;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;cursor:pointer}
+  .tabs button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700}
+
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
-  label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
-  input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:16px}
+  .cardTitle{font-weight:700;font-size:17px;margin-bottom:2px}
+  .sec{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .sec.first{border-top:0;padding-top:0;margin-top:8px}
+  h3{font-size:15px;margin:0 0 2px;color:var(--gold)}
+  h3 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:4px}
+  label{display:block;font-size:13px;color:var(--mut);margin:12px 0 5px}
+  .hint{font-size:12px;color:var(--mut);margin-top:5px}
+  input[type=text]{width:100%;padding:13px 12px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:16px}
+  input[type=text]:focus{border-color:var(--gold)}
+  .bad{border-color:var(--no)!important;box-shadow:0 0 0 2px rgba(233,138,138,.3)}
   .seg{display:flex;gap:8px}
-  .seg button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:15px;cursor:pointer}
-  .seg button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:600}
+  .seg button{flex:1;padding:13px 8px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:15px;cursor:pointer}
+  .seg button.on,.chips button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:600}
+  .chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .chips button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:12px 8px;min-height:64px;border-radius:12px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:14px;cursor:pointer;text-align:center}
+  .chips button .em{font-size:22px;line-height:1}
+  .chips button small{font-size:11px;opacity:.75;font-weight:400}
   .stepper{display:flex;align-items:center;gap:12px}
-  .stepper button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:22px;cursor:pointer}
-  .stepper span{min-width:24px;text-align:center;font-size:18px}
-  .go{width:100%;margin-top:16px;padding:14px;border:0;border-radius:10px;background:var(--gold);color:#1a1a1a;font-size:17px;font-weight:700;cursor:pointer}
-  .ghost{background:none;border:0;color:var(--mut);cursor:pointer;font-size:13px;text-decoration:underline;padding:4px}
-  .stats{display:flex;gap:8px;margin-bottom:16px}
-  .stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
-  .stat b{display:block;font-size:24px;color:var(--gold)}
-  .stat small{color:var(--mut)}
-  h2{font-size:16px;margin:20px 0 8px;color:var(--gold)}
-  .row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
-  .row .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-  .row .name{font-weight:600}
-  .tag{font-size:12px;color:var(--mut)}
-  .meta{margin-top:6px;font-size:14px;color:var(--text)}
-  .meta span{color:var(--mut)}
-  .no .name{color:var(--no)}
-  .sub-row{margin:-4px 0 8px 18px;padding:8px 12px;border-left:2px solid var(--gold);background:rgba(23,20,31,.7);border-radius:0 10px 10px 0;font-size:14px}
-  .sub-row .tag{margin-left:4px}
+  .stepper button{width:46px;height:46px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:22px;cursor:pointer}
+  .stepper b{min-width:24px;text-align:center;font-size:20px}
+  .stepper .tag{font-size:13px}
+  .go{width:100%;margin-top:18px;padding:15px;border:0;border-radius:12px;background:var(--gold);color:#1a1a1a;font-size:17px;font-weight:700;cursor:pointer}
+  .go:disabled{opacity:.6;cursor:default}
+  .ghost{background:none;border:0;color:var(--mut);cursor:pointer;font-size:13px;text-decoration:underline;padding:8px}
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:13px;cursor:pointer}
+  .pill.danger{color:var(--no)}
+  .chk{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:14px;color:var(--text)}
+  .chk input{width:18px;height:18px;accent-color:#c4a7ff}
+  .line{display:flex;gap:8px}
+  .sq{flex:0 0 48px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:20px;cursor:pointer}
+  .sq.add{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700;font-size:24px}
   .photoBtn{display:inline-block;margin:0;padding:10px 14px;border:1px dashed var(--mut);border-radius:10px;color:var(--text);cursor:pointer;font-size:14px}
   .thumb{display:block;margin-top:8px;max-width:100%;max-height:160px;border-radius:10px;border:1px solid var(--line);object-fit:cover}
-  select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:16px}
-  .chk{display:flex;align-items:center;gap:8px;margin:6px 0 0;font-size:13px;color:var(--text)}
-  .chk input{width:auto}
-  .line{display:flex;gap:8px}
-  .sq{flex:0 0 46px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:20px;cursor:pointer}
-  .sq.add{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700;font-size:24px}
   .thumbs{display:flex;gap:8px;flex-wrap:wrap}
   .ph{display:block;text-decoration:none}
   .ph .tag{display:block;margin-top:2px}
-  .tabs{display:flex;gap:8px;margin-bottom:16px}
-  .tabs button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;cursor:pointer}
-  .tabs button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700}
-  .big{font-size:20px;color:var(--gold);font-weight:700}
-  .pay{margin-top:6px;font-size:14px}
-  .msg{text-align:center;color:var(--mut);padding:12px}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#0a2a18;padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center}
+  .stat b{display:block;font-size:24px;color:var(--gold)}
+  .stat small{color:var(--mut);font-size:12px}
+  h2{font-size:16px;margin:22px 0 8px;color:var(--gold)}
+  details summary{cursor:pointer;font-size:16px;font-weight:700;color:var(--gold);margin:22px 0 8px}
+  .row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+  .row .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .row .name{font-weight:600}
+  .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .tag{font-size:12px;color:var(--mut)}
+  .meta{margin-top:6px;font-size:14px;line-height:1.5}
+  .no .name{color:var(--no)}
+  .sub-row{margin:-4px 0 8px 18px;padding:8px 12px;border-left:2px solid var(--gold);background:rgba(23,20,31,.7);border-radius:0 10px 10px 0;font-size:14px}
+  .sub-row .tag{margin-left:4px}
+  .banner{border-color:var(--gold);background:var(--card2)}
+  .banner .top{align-items:center}
+  .flash{animation:flash 1.8s ease-out}
+  @keyframes flash{from{box-shadow:0 0 0 3px var(--gold)}to{box-shadow:0 0 0 0 transparent}}
+  .big{font-size:22px;color:var(--gold);font-weight:700}
+  .pay{margin-top:6px;font-size:14px;line-height:1.45}
+  .mine{border-color:var(--gold);background:var(--card2)}
+  .mine .big{font-size:26px}
+  .msg{text-align:center;color:var(--mut);padding:14px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#0a2a18;padding:11px 18px;border-radius:999px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center;z-index:20}
+  .toast.err{background:var(--no);color:#2a0a0a}
   .toast.show{opacity:1}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 <main>
   <h1>🎆 Festa de Ano Novo</h1>
-  <p class="sub">Confirme sua presença e diga o que vai levar</p>
+  <p class="sub">Confirme presença, diga o que vai levar e acerte os gastos</p>
 
-  <div class="tabs">
+  <nav class="tabs" aria-label="Seções">
     <button type="button" class="on" data-tab="Presenca">🎉 Presença</button>
     <button type="button" data-tab="Gastos">💰 Gastos</button>
-  </div>
+  </nav>
 
-  <div id="tabPresenca">
-  <div class="card">
-    <div id="formTitle" style="font-weight:600">Sua confirmação</div>
-    <label for="name">Seu nome</label>
-    <input id="name" type="text" maxlength="80" placeholder="Ex.: Maria" autocomplete="off">
+  <section id="tabPresenca">
+    <div id="mineBanner"></div>
 
-    <label>Você vai?</label>
-    <div class="seg" id="statusSeg">
-      <button type="button" data-v="vou" class="on">Vou 🎉</button>
-      <button type="button" data-v="nao_vou">Não vou</button>
-    </div>
+    <div class="card" id="formCard">
+      <div class="cardTitle" id="formTitle">Confirme sua presença</div>
 
-    <div id="goingFields">
-      <label>Quantas pessoas (contando você)?</label>
-      <div class="stepper">
-        <button type="button" id="minus">−</button><span id="guests">1</span><button type="button" id="plus">+</button>
-        <span class="tag" id="guestsHint">sozinho(a)</span>
-      </div>
-      <div id="compBox"></div>
+      <div class="sec first">
+        <label for="name" style="margin-top:6px">Seu nome</label>
+        <input id="name" type="text" maxlength="80" placeholder="Ex.: Maria" autocomplete="off">
+        <div class="hint">Se houver alguém com o mesmo nome, use sobrenome ou apelido.</div>
 
-      <label>Você bebe álcool? 🍺</label>
-      <div class="seg" id="alcSeg">
-        <button type="button" data-v="1" class="on">Sim</button>
-        <button type="button" data-v="0">Não</button>
-      </div>
-
-      <label>Comida que vai levar <span class="tag">(opcional · use o + para mais de uma)</span></label>
-      <div id="foodList"></div>
-
-      <label>Bebida que vai levar <span class="tag">(opcional · use o + para mais de uma)</span></label>
-      <div id="drinkList"></div>
-
-      <label>Amigo da onça 🐆</label>
-      <div class="seg" id="oncaSeg">
-        <button type="button" data-v="1">Vou participar</button>
-        <button type="button" data-v="0" class="on">Não vou</button>
-      </div>
-      <div id="giftBox" hidden>
-        <label id="giftLabel">Quantos presentinhos vai levar?</label>
-        <div class="stepper">
-          <button type="button" id="gMinus">−</button><span id="giftsN">1</span><button type="button" id="gPlus">+</button>
+        <label>Você vai?</label>
+        <div class="seg" id="statusSeg" role="group" aria-label="Você vai?">
+          <button type="button" data-v="vou">Vou 🎉</button>
+          <button type="button" data-v="nao_vou">Não vou</button>
         </div>
       </div>
+
+      <div id="goingFields">
+        <div class="sec">
+          <h3>👥 Quem vem</h3>
+          <label style="margin-top:8px">Quantas pessoas (contando você)?</label>
+          <div class="stepper">
+            <button type="button" id="minus" aria-label="Menos uma pessoa">−</button><b id="guests">1</b><button type="button" id="plus" aria-label="Mais uma pessoa">+</button>
+            <span class="tag" id="guestsHint">sozinho(a)</span>
+          </div>
+          <div id="compBox"></div>
+
+          <label>Você bebe álcool? 🍺</label>
+          <div class="seg" id="alcSeg" role="group" aria-label="Você bebe álcool?">
+            <button type="button" data-v="1">Sim</button>
+            <button type="button" data-v="0">Não</button>
+          </div>
+          <div class="hint">Serve para dividir a bebida alcoólica só entre quem bebe.</div>
+        </div>
+
+        <div class="sec">
+          <h3>🍽️ O que você leva <small>opcional</small></h3>
+          <label style="margin-top:8px">Comida <span class="tag">· use o + para mais de uma</span></label>
+          <div id="foodList"></div>
+          <label>Bebida <span class="tag">· use o + para mais de uma</span></label>
+          <div id="drinkList"></div>
+        </div>
+
+        <div class="sec">
+          <h3>🐆 Amigo da onça <small>troca de presentes</small></h3>
+          <label style="margin-top:8px">Vai participar?</label>
+          <div class="seg" id="oncaSeg" role="group" aria-label="Amigo da onça">
+            <button type="button" data-v="1">Vou participar</button>
+            <button type="button" data-v="0">Não vou</button>
+          </div>
+          <div id="giftBox" hidden>
+            <label id="giftLabel">Quantos presentinhos vai levar?</label>
+            <div class="stepper">
+              <button type="button" id="gMinus" aria-label="Menos um presente">−</button><b id="giftsN">1</b><button type="button" id="gPlus" aria-label="Mais um presente">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="go" id="save">Confirmar presença</button>
+      <div style="text-align:center"><button class="ghost" id="cancelEdit" hidden>Cancelar edição</button></div>
     </div>
 
-    <button class="go" id="save">Confirmar</button>
-    <div style="text-align:center"><button class="ghost" id="cancelEdit" hidden>Cancelar edição</button></div>
-  </div>
+    <h2 style="margin-top:8px">Quem já confirmou</h2>
+    <div class="stats">
+      <div class="stat"><b id="sPeople">0</b><small>pessoas</small></div>
+      <div class="stat"><b id="sFood">0</b><small>comidas</small></div>
+      <div class="stat"><b id="sDrink">0</b><small>bebidas</small></div>
+      <div class="stat"><b id="sGifts">0</b><small>presentes</small></div>
+    </div>
+    <div class="msg" id="oncaLine" style="padding:0 0 4px"></div>
 
-  <div class="stats">
-    <div class="stat"><b id="sPeople">0</b><small>pessoas</small></div>
-    <div class="stat"><b id="sFood">0</b><small>comidas</small></div>
-    <div class="stat"><b id="sDrink">0</b><small>bebidas</small></div>
-    <div class="stat"><b id="sGifts">0</b><small>presentes</small></div>
-  </div>
-  <div class="msg" id="oncaLine" style="padding:0 0 12px"></div>
+    <div id="list"><div class="msg">Carregando…</div></div>
+  </section>
 
-  <div id="list"><div class="msg">Carregando…</div></div>
-  </div>
+  <section id="tabGastos" hidden>
+    <div id="eMine"></div>
 
-  <div id="tabGastos" hidden>
     <div class="card">
-      <div style="font-weight:600">Adicionar gasto</div>
-      <label for="eCat">Tipo de gasto</label>
-      <select id="eCat">
-        <option value="comida">🍽️ Comida</option>
-        <option value="bebida">🥤 Bebida sem álcool</option>
-        <option value="alcool">🍺 Bebida alcoólica</option>
-        <option value="itens" selected>🎈 Itens da festa (descartáveis, cooler, aluguel…)</option>
-      </select>
-      <label for="eItem">Item</label>
+      <div class="cardTitle">Adicionar gasto</div>
+
+      <label style="margin-top:10px">Que tipo de gasto é?</label>
+      <div class="chips" id="catSeg" role="group" aria-label="Tipo de gasto">
+        <button type="button" data-v="comida"><span class="em">🍽️</span>Comida</button>
+        <button type="button" data-v="bebida"><span class="em">🥤</span>Bebida sem álcool</button>
+        <button type="button" data-v="alcool"><span class="em">🍺</span>Bebida alcoólica</button>
+        <button type="button" data-v="itens"><span class="em">🎈</span>Itens da festa<small>descartáveis, cooler, aluguel…</small></button>
+      </div>
+
+      <label for="eItem">O que foi comprado?</label>
       <input id="eItem" type="text" maxlength="100" placeholder="Ex.: Copo descartável" autocomplete="off">
-      <label for="eAmount">Valor (R$)</label>
-      <input id="eAmount" type="text" inputmode="decimal" maxlength="10" placeholder="25,00" autocomplete="off">
-      <label for="eBuyer">Quem comprou</label>
+
+      <label for="eAmount">Valor</label>
+      <div class="line" style="align-items:center">
+        <span style="font-size:16px;color:var(--mut)">R$</span>
+        <input id="eAmount" type="text" inputmode="decimal" maxlength="10" placeholder="25,00" autocomplete="off">
+      </div>
+
+      <label for="eBuyer">Quem comprou?</label>
       <input id="eBuyer" type="text" maxlength="80" list="buyerList" placeholder="Ex.: Gabriel" autocomplete="off">
       <datalist id="buyerList"></datalist>
+      <div class="hint">Escolha da lista ou digite igual ao nome da confirmação.</div>
+
       <button class="go" id="eSave">Adicionar gasto</button>
     </div>
 
-    <div class="tag" style="margin:0 4px 12px">A divisão usa as pessoas confirmadas na aba Presença. Bebida alcoólica só é dividida entre quem marcou que bebe álcool.</div>
-
     <div id="eSummary"></div>
     <div id="eList"></div>
-  </div>
+  </section>
 </main>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-const URL_ = "https://ksucnjrmcagzepxahync.supabase.co/rest/v1/party_rsvp";
+const SUPA = "https://ksucnjrmcagzepxahync.supabase.co";
+const URL_ = SUPA + "/rest/v1/party_rsvp";
+const URL_E = SUPA + "/rest/v1/party_expenses";
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzdWNuanJtY2FnemVweGFoeW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNDM0NDQsImV4cCI6MjEwODcxOTQ0NH0.BSj6kWbL7tt4Elea3YxNOlDUPmEiXkM1dURLHlU8Wzo";
 const devId = (() => { try { let d = localStorage.getItem("festa_dev"); if(!d){ d = Array.from(crypto.getRandomValues(new Uint8Array(2)), b=>b.toString(16).padStart(2,"0")).join("").toUpperCase(); localStorage.setItem("festa_dev", d); } return d; } catch(e){ return "????"; } })();
 const whoNow = () => { try { return localStorage.getItem("festa_who") || ""; } catch(e){ return ""; } };
 const H = {apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json", get "x-client-info"(){ return encodeURIComponent(devId+"|"+whoNow()); }};
 const $ = id => document.getElementById(id);
-
-let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1, exps = [], foodsList = [{n:"",p:null}], drinksList = [{n:""}], alc = [true];
-const SUPA = "https://ksucnjrmcagzepxahync.supabase.co";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const STORE = SUPA + "/storage/v1/object/public/party-photos/";
 const okPhoto = u => typeof u === "string" && u.startsWith(STORE);
 const getFoods = r => (Array.isArray(r.foods) && r.foods.length) ? r.foods.filter(f=>f && f.n) : (r.food ? [{n:r.food, p:r.food_photo}] : []);
 const getDrinks = r => (Array.isArray(r.drinks) && r.drinks.length) ? r.drinks.filter(d=>d && d.n) : (r.drink ? [{n:r.drink}] : []);
-const URL_E = "https://ksucnjrmcagzepxahync.supabase.co/rest/v1/party_expenses";
 const mine = () => { try { return JSON.parse(localStorage.getItem("festa_mine")||"[]"); } catch(e){ return []; } };
 const addMine = id => { try { localStorage.setItem("festa_mine", JSON.stringify([...new Set([...mine(), id])])); } catch(e){} };
 
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1, exps = [];
+let foodsList = [{n:"",p:null}], drinksList = [{n:""}], alc = [true], cat = null, noOpen = false;
 
-function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2200); }
+function toast(t, err){ const el=$("toast"); el.textContent=t; el.classList.toggle("err", !!err); el.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"), err?3200:2200); }
+function fail(el, msg){
+  toast(msg, true);
+  el.classList.add("bad");
+  el.scrollIntoView({behavior:"smooth", block:"center"});
+  if(el.focus && el.tagName==="INPUT") el.focus();
+}
+document.addEventListener("input", e => e.target.classList && e.target.classList.remove("bad"));
+function setSeg(sel, isOn){
+  document.querySelectorAll(sel+" button").forEach(b=>{ const on = isOn(b.dataset.v); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+}
 
+/* ================= PRESENÇA: formulário ================= */
 function renderForm(){
-  document.querySelectorAll("#statusSeg button").forEach(b=>b.classList.toggle("on", b.dataset.v===status));
+  setSeg("#statusSeg", v => v===status);
   $("goingFields").style.display = status==="vou" ? "" : "none";
   $("guests").textContent = guests;
   $("guestsHint").textContent = guests===1 ? "sozinho(a)" : guests===2 ? "casal" : guests+" pessoas";
-  document.querySelectorAll("#oncaSeg button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="1")===onca));
+  setSeg("#oncaSeg", v => (v==="1")===onca);
   $("giftBox").hidden = !onca;
   $("giftsN").textContent = gifts;
   $("giftLabel").textContent = guests === 1 ? "Quantos presentinhos vai levar?"
     : guests === 2 ? "Quantos presentinhos vão levar no total? (os seus + os do(a) acompanhante)"
     : "Quantos presentinhos vão levar no total? (somando todas as pessoas do grupo)";
-  renderLists();
   while(alc.length < guests) alc.push(true);
   alc.length = guests;
-  document.querySelectorAll("#alcSeg button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="1")===(alc[0]!==false)));
+  setSeg("#alcSeg", v => (v==="1")===(alc[0]!==false));
+  renderLists();
   const box = $("compBox");
   box.innerHTML = "";
   for(let i=0;i<guests-1;i++){
@@ -207,10 +276,11 @@ function renderForm(){
     chk.appendChild(cb); chk.appendChild(document.createTextNode("bebe álcool 🍺"));
     box.appendChild(lab); box.appendChild(inp); box.appendChild(chk);
   }
-  $("formTitle").textContent = editingId ? "Editar confirmação" : "Sua confirmação";
-  $("save").textContent = editingId ? "Salvar alterações" : "Confirmar";
+  $("formTitle").textContent = editingId ? "Editar confirmação" : "Confirme sua presença";
+  $("save").textContent = editingId ? "Salvar alterações" : "Confirmar presença";
   $("cancelEdit").hidden = !editingId;
 }
+
 function renderLists(){
   const mk = (id, arr, kind) => {
     const box = $(id); box.innerHTML = "";
@@ -220,19 +290,20 @@ function renderLists(){
       const inp = document.createElement("input");
       inp.type = "text"; inp.maxLength = 120; inp.autocomplete = "off";
       inp.placeholder = kind === "food" ? "Ex.: Farofa, salpicão…" : "Ex.: 2 refris, espumante…";
+      inp.setAttribute("aria-label", kind === "food" ? "Comida "+(i+1) : "Bebida "+(i+1));
       inp.value = it.n || "";
       inp.oninput = () => { it.n = inp.value; };
       line.appendChild(inp);
       if(arr.length > 1){
         const rm = document.createElement("button");
-        rm.type = "button"; rm.className = "sq"; rm.textContent = "✕"; rm.title = "Remover";
+        rm.type = "button"; rm.className = "sq"; rm.textContent = "✕"; rm.title = "Remover este item"; rm.setAttribute("aria-label","Remover este item");
         rm.onclick = () => { arr.splice(i, 1); renderForm(); };
         line.appendChild(rm);
       }
       if(i === arr.length - 1 && arr.length < 10){
         const add = document.createElement("button");
         add.type = "button"; add.className = "sq add"; add.textContent = "+";
-        add.title = kind === "food" ? "Adicionar outra comida" : "Adicionar outra bebida";
+        add.title = add.ariaLabel = kind === "food" ? "Adicionar outra comida" : "Adicionar outra bebida";
         add.onclick = () => {
           arr.push(kind === "food" ? {n:"", p:null} : {n:""});
           renderForm();
@@ -246,9 +317,9 @@ function renderLists(){
         const fileId = id + "File" + i;
         const lab = document.createElement("label");
         lab.className = "photoBtn"; lab.htmlFor = fileId;
-        lab.textContent = it.p ? "📷 Trocar foto" : "📷 Adicionar foto";
+        lab.textContent = it.up ? "⏳ Enviando foto…" : it.p ? "📷 Trocar foto" : "📷 Adicionar foto";
         const file = document.createElement("input");
-        file.type = "file"; file.accept = "image/*"; file.hidden = true; file.id = fileId;
+        file.type = "file"; file.accept = "image/*"; file.hidden = true; file.id = fileId; file.disabled = !!it.up;
         file.onchange = e => { const f = e.target.files[0]; e.target.value = ""; if(f) uploadPhoto(f, it); };
         pl.appendChild(lab); pl.appendChild(file);
         if(okPhoto(it.p)){
@@ -267,6 +338,7 @@ function renderLists(){
   mk("foodList", foodsList, "food");
   mk("drinkList", drinksList, "drink");
 }
+
 document.querySelectorAll("#statusSeg button").forEach(b=>b.onclick=()=>{status=b.dataset.v;renderForm();});
 document.querySelectorAll("#alcSeg button").forEach(b=>b.onclick=()=>{alc[0]=b.dataset.v==="1";renderForm();});
 document.querySelectorAll("#oncaSeg button").forEach(b=>b.onclick=()=>{onca=b.dataset.v==="1";if(onca&&gifts<1)gifts=1;renderForm();});
@@ -275,16 +347,21 @@ $("gPlus").onclick=()=>{gifts=Math.min(20,gifts+1);renderForm();};
 $("minus").onclick=()=>{guests=Math.max(1,guests-1);renderForm();};
 $("plus").onclick=()=>{guests=Math.min(10,guests+1);renderForm();};
 
-function resetForm(){ editingId=null; status="vou"; guests=1; companions=[]; alc=[true]; onca=false; gifts=1; foodsList=[{n:"",p:null}]; drinksList=[{n:""}]; $("name").value=""; renderForm(); }
+function resetForm(){
+  editingId=null; status="vou"; guests=1; companions=[]; alc=[true]; onca=false; gifts=1;
+  foodsList=[{n:"",p:null}]; drinksList=[{n:""}]; $("name").value="";
+  renderForm(); renderList();
+}
 $("cancelEdit").onclick=resetForm;
 
+/* ================= PRESENÇA: lista ================= */
 async function load(){
   try{
     const r = await fetch(URL_+"?select=*&order=created_at.asc", {headers:H});
     if(!r.ok) throw new Error(r.status);
     rows = await r.json();
     renderList();
-  }catch(e){ $("list").innerHTML='<div class="msg">Não consegui carregar a lista. Tente atualizar a página.</div>'; }
+  }catch(e){ $("list").innerHTML='<div class="msg">Não consegui carregar a lista.<br><br><button class="pill" data-retry="1">↻ Tentar de novo</button></div>'; }
 }
 
 function renderList(){
@@ -296,39 +373,65 @@ function renderList(){
   $("sGifts").textContent = oncaYes.reduce((a,r)=>a+(r.gifts||0),0);
   $("oncaLine").textContent = "🐆 Amigo da onça: " + oncaYes.length + (oncaYes.length===1?" participante":" participantes");
   renderExp();
+
   const m = mine();
+  const mineRows = rows.filter(r=>m.includes(r.id));
+  $("mineBanner").innerHTML = (mineRows.length && !editingId) ? mineRows.map(r=>`
+    <div class="card banner"><div class="top">
+      <div>✅ <b>${esc(r.name)}</b><div class="tag">${r.status==='vou'?'Presença confirmada neste aparelho':'Marcado como “não vou” neste aparelho'}</div></div>
+      <div class="acts"><button class="pill" data-edit="${esc(r.id)}">✏️ Editar</button></div>
+    </div></div>`).join("") : "";
+
   const item = r => `
-    <div class="row ${r.status==='vou'?'':'no'}">
+    <div class="row ${r.status==='vou'?'':'no'}" data-row="${esc(r.id)}">
       <div class="top">
         <div><span class="name">${esc(r.name)}</span> ${r.status==='vou' ? `<span class="tag">· ${r.guests===1?'1 pessoa':r.guests===2?'casal':r.guests+' pessoas'}</span>`:''}</div>
-        ${m.includes(r.id) ? `<div><button class="ghost" data-edit="${r.id}">editar</button><button class="ghost" data-del="${r.id}">remover</button></div>`:''}
+        ${m.includes(r.id) ? `<div class="acts"><button class="pill" data-edit="${esc(r.id)}">✏️ Editar</button><button class="pill danger" data-del="${esc(r.id)}">🗑️ Remover</button></div>`:''}
       </div>
       ${r.status==='vou' && (getFoods(r).length||getDrinks(r).length||r.onca) ? `<div class="meta">${[getFoods(r).length?`🍽️ ${getFoods(r).map(f=>esc(f.n)).join(' · ')}`:'', getDrinks(r).length?`🥂 ${getDrinks(r).map(d=>esc(d.n)).join(' · ')}`:'', r.onca?`🐆 Amigo da onça · ${r.gifts} ${r.gifts===1?'presente':'presentes'}`:''].filter(Boolean).join('<br>')}</div>`:''}
       ${r.status==='vou' && getFoods(r).some(f=>okPhoto(f.p)) ? `<div class="thumbs">${getFoods(r).filter(f=>okPhoto(f.p)).map(f=>`<a class="ph" href="${esc(f.p)}" target="_blank" rel="noopener"><img class="thumb" src="${esc(f.p)}" alt="Foto de ${esc(f.n)}" loading="lazy"><span class="tag">${esc(f.n)}</span></a>`).join('')}</div>`:''}
     </div>` + (r.status==='vou' ? (r.companions||[]).filter(c=>c&&c.trim()).map(c=>`<div class="sub-row">↳ ${esc(c)} <span class="tag">com ${esc(r.name)}</span></div>`).join('') : '');
   let h = "";
   if(yes.length) h += `<h2>Confirmados (${yes.length})</h2>` + yes.map(item).join("");
-  if(no.length) h += `<h2>Não vão (${no.length})</h2>` + no.map(item).join("");
+  if(no.length) h += `<details ${noOpen?'open':''} ontoggle="noOpen=this.open"><summary>Não vão (${no.length})</summary>${no.map(item).join("")}</details>`;
   $("list").innerHTML = h || '<div class="msg">Ninguém confirmou ainda. Seja o primeiro! 🎉</div>';
 }
 
-$("list").onclick = async e => {
-  const ed = e.target.dataset.edit, del = e.target.dataset.del;
+async function onActions(e){
+  const btn = e.target.closest("button"); if(!btn) return;
+  if(btn.dataset.retry){ tick(true); return; }
+  const ed = btn.dataset.edit, del = btn.dataset.del;
   if(ed){
     const r = rows.find(x=>x.id===ed); if(!r) return;
-    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])]; alc=Array.isArray(r.alcohol)?r.alcohol.map(x=>!!x):[]; onca=!!r.onca; gifts=r.gifts>0?r.gifts:1; foodsList=getFoods(r).map(f=>({n:f.n,p:okPhoto(f.p)?f.p:null})); if(!foodsList.length) foodsList=[{n:"",p:null}]; drinksList=getDrinks(r).map(d=>({n:d.n})); if(!drinksList.length) drinksList=[{n:""}]; $("name").value=r.name;
-    renderForm(); window.scrollTo({top:0,behavior:"smooth"});
+    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])];
+    alc=Array.isArray(r.alcohol)?r.alcohol.map(x=>!!x):[]; onca=!!r.onca; gifts=r.gifts>0?r.gifts:1;
+    foodsList=getFoods(r).map(f=>({n:f.n,p:okPhoto(f.p)?f.p:null})); if(!foodsList.length) foodsList=[{n:"",p:null}];
+    drinksList=getDrinks(r).map(d=>({n:d.n})); if(!drinksList.length) drinksList=[{n:""}];
+    $("name").value=r.name;
+    renderForm(); renderList();
+    $("formCard").scrollIntoView({behavior:"smooth", block:"start"});
   }
-  if(del && confirm("Remover sua confirmação?")){
-    await fetch(URL_+"?id=eq."+del, {method:"DELETE", headers:H});
-    toast("Removido"); load();
+  if(del && confirm("Remover esta confirmação?")){
+    try{
+      const r = await fetch(URL_+"?id=eq."+encodeURIComponent(del), {method:"DELETE", headers:H});
+      if(!r.ok) throw new Error(r.status);
+      toast("Confirmação removida");
+    }catch(err){ toast("Não consegui remover, tente de novo", true); }
+    load();
   }
-};
+}
+$("list").onclick = onActions;
+$("mineBanner").onclick = onActions;
 
 $("save").onclick = async () => {
   const name = $("name").value.trim();
-  if(!name){ toast("Digite seu nome"); $("name").focus(); return; }
+  if(!name){ fail($("name"), "Digite seu nome"); return; }
+  if(!editingId){
+    const dup = rows.some(r=>r.name.trim().toLowerCase()===name.toLowerCase());
+    if(dup && !confirm("Já existe alguém confirmado como “"+name+"”. Se for outra pessoa, use o sobrenome ou um apelido.\n\nConfirmar mesmo assim?")) return;
+  }
   try{ localStorage.setItem("festa_who", name); }catch(e){}
+  if(!$("eBuyer").value) $("eBuyer").value = name;
   const going = status==="vou";
   const comps = going ? Array.from({length:guests-1}, (_,i)=>(companions[i]||"").trim().slice(0,80)) : [];
   const foods = going ? foodsList.map(f=>({n:(f.n||"").trim().slice(0,120), p:okPhoto(f.p)?f.p:null})).filter(f=>f.n).slice(0,10).map(f=>f.p?f:{n:f.n}) : [];
@@ -338,24 +441,32 @@ $("save").onclick = async () => {
     food: foods.length ? foods.map(f=>f.n).join(", ").slice(0,120) : null,
     drink: drinks.length ? drinks.map(d=>d.n).join(", ").slice(0,120) : null,
     food_photo: (foods.find(f=>f.p)||{}).p || null };
-  $("save").disabled = true;
+  const wasEditing = !!editingId;
+  let savedId = editingId;
+  $("save").disabled = true; $("save").textContent = "Salvando…";
   try{
     let r;
     if(editingId){
-      r = await fetch(URL_+"?id=eq."+editingId, {method:"PATCH", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify(body)});
+      r = await fetch(URL_+"?id=eq."+encodeURIComponent(editingId), {method:"PATCH", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify(body)});
     }else{
-      const id = crypto.randomUUID();
-      r = await fetch(URL_, {method:"POST", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify({id,...body})});
-      if(r.ok) addMine(id);
+      savedId = crypto.randomUUID();
+      r = await fetch(URL_, {method:"POST", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify({id:savedId,...body})});
+      if(r.ok) addMine(savedId);
     }
     if(!r.ok) throw new Error(r.status);
-    toast(editingId ? "Alterações salvas!" : "Presença confirmada! 🎉");
+    toast(wasEditing ? "Alterações salvas! ✅" : going ? "Presença confirmada! 🎉" : "Resposta registrada ✅");
     resetForm(); await load();
-  }catch(e){ toast("Erro ao salvar, tente de novo"); }
+    const el = document.querySelector('[data-row="'+savedId+'"]');
+    if(el){
+      if(!going){ $("list").querySelector("details") && ($("list").querySelector("details").open = true); }
+      el.scrollIntoView({behavior:"smooth", block:"center"});
+      el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"), 2000);
+    }
+  }catch(e){ toast("Erro ao salvar, tente de novo", true); renderForm(); }
   $("save").disabled = false;
 };
 
-/* ---------- Foto da comida ---------- */
+/* ================= Foto da comida ================= */
 function resizeImg(file){
   return new Promise((res,rej)=>{
     const img = new Image(), u = URL.createObjectURL(file);
@@ -372,37 +483,41 @@ function resizeImg(file){
   });
 }
 async function uploadPhoto(f, it){
-  $("save").disabled = true; toast("Enviando foto…");
+  it.up = true; $("save").disabled = true; renderForm();
   try{
     const blob = await resizeImg(f);
     const name = crypto.randomUUID()+".jpg";
     const r = await fetch(SUPA+"/storage/v1/object/party-photos/"+name, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"image/jpeg"}, body:blob});
     if(!r.ok) throw new Error(r.status);
-    it.p = STORE+name; renderForm(); toast("Foto adicionada!");
-  }catch(err){ toast("Não consegui enviar a foto"); }
-  $("save").disabled = false;
+    it.p = STORE+name; toast("Foto adicionada! 📷");
+  }catch(err){ toast("Não consegui enviar a foto. Tente outra.", true); }
+  it.up = false; $("save").disabled = false; renderForm();
 }
 
-/* ---------- Abas ---------- */
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on", x===b));
-  $("tabPresenca").hidden = b.dataset.tab!=="Presenca";
-  $("tabGastos").hidden = b.dataset.tab!=="Gastos";
-});
+/* ================= Abas ================= */
+function showTab(t){
+  document.querySelectorAll(".tabs button").forEach(x=>{ const on = x.dataset.tab===t; x.classList.toggle("on", on); x.setAttribute("aria-current", on ? "page" : "false"); });
+  $("tabPresenca").hidden = t!=="Presenca";
+  $("tabGastos").hidden = t!=="Gastos";
+  try{ history.replaceState(null, "", t==="Gastos" ? "#gastos" : "#presenca"); }catch(e){}
+  window.scrollTo({top:0});
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
-/* ---------- Gastos ---------- */
+/* ================= GASTOS ================= */
 const brl = c => (c/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const toCents = s => { const n = parseFloat(String(s).trim().replace(/\./g,"").replace(",",".")); return isFinite(n) && n>=0 ? Math.round(n*100) : null; };
+const CATS = {comida:"🍽️ Comida", bebida:"🥤 Bebida sem álcool", alcool:"🍺 Bebida alcoólica", itens:"🎈 Itens da festa"};
+
+document.querySelectorAll("#catSeg button").forEach(b=>b.onclick=()=>{ cat=b.dataset.v; $("catSeg").classList.remove("bad"); setSeg("#catSeg", v=>v===cat); });
 
 async function loadExp(){
   try{
     const r = await fetch(URL_E+"?select=*&order=created_at.asc", {headers:H});
     if(!r.ok) throw new Error(r.status);
     exps = await r.json(); renderExp();
-  }catch(e){ $("eList").innerHTML='<div class="msg">Não consegui carregar os gastos. Tente atualizar a página.</div>'; }
+  }catch(e){ $("eList").innerHTML='<div class="msg">Não consegui carregar os gastos.<br><br><button class="pill" data-retry="1">↻ Tentar de novo</button></div>'; }
 }
-
-const CATS = {comida:"🍽️ Comida", bebida:"🥤 Bebida sem álcool", alcool:"🍺 Bebida alcoólica", itens:"🎈 Itens da festa"};
 
 function people(){
   const out = [];
@@ -418,27 +533,41 @@ function people(){
 function renderExp(){
   const ppl = people();
   const nAll = ppl.length, nDrink = ppl.filter(p=>p.drinks).length;
-  // sugestões de nomes
   const names = [];
-  rows.filter(r=>r.status==="vou").forEach(r=>{ names.push(r.name); (r.companions||[]).forEach(c=>c&&names.push(c)); });
+  rows.filter(r=>r.status==="vou").forEach(r=>{ names.push(r.name); (r.companions||[]).forEach(c=>c&&c.trim()&&names.push(c.trim())); });
   $("buyerList").innerHTML = [...new Set(names)].map(x=>`<option value="${esc(x)}">`).join("");
 
-  if(!exps.length){ $("eSummary").innerHTML=""; $("eList").innerHTML='<div class="msg">Nenhum gasto lançado ainda.</div>'; return; }
+  if(!exps.length){
+    $("eMine").innerHTML = ""; $("eSummary").innerHTML = "";
+    $("eList").innerHTML = '<div class="msg">Nenhum gasto lançado ainda.<br>Use o formulário acima para adicionar o primeiro.</div>';
+    return;
+  }
 
   const cents = e => Math.round(Number(e.amount)*100);
-  const cat = e => CATS[e.category] ? e.category : "itens";
+  const catOf = e => CATS[e.category] ? e.category : "itens";
   const total = exps.reduce((a,e)=>a+cents(e),0);
   const byCat = {};
-  exps.forEach(e=>{ byCat[cat(e)] = (byCat[cat(e)]||0) + cents(e); });
+  exps.forEach(e=>{ byCat[catOf(e)] = (byCat[catOf(e)]||0) + cents(e); });
 
   // quanto uma pessoa paga por um gasto (álcool só entre quem bebe)
   const share = (e, drinker) => {
-    if(cat(e)==="alcool"){ return (drinker && nDrink) ? cents(e)/nDrink : 0; }
+    if(catOf(e)==="alcool"){ return (drinker && nDrink) ? cents(e)/nDrink : 0; }
     return nAll ? cents(e)/nAll : 0;
   };
   const owe = drinker => exps.reduce((a,e)=>a+share(e,drinker),0);
-  const hasAlc = exps.some(e=>cat(e)==="alcool");
+  const hasAlc = exps.some(e=>catOf(e)==="alcool");
   const oweD = Math.round(owe(true)), oweN = Math.round(owe(false));
+
+  // cartão pessoal: "sua parte"
+  const who = whoNow().trim().toLowerCase();
+  const me = who ? ppl.find(p=>p.name.trim().toLowerCase()===who) : null;
+  if(me && nAll){
+    const mine$ = Math.round(owe(me.drinks));
+    const spent = exps.filter(e=>e.buyer.trim().toLowerCase()===who).reduce((a,e)=>a+cents(e),0);
+    const saldo = spent - mine$;
+    $("eMine").innerHTML = `<div class="card mine"><div class="tag">Sua parte, ${esc(me.name)}</div><div class="big">${brl(mine$)}</div>
+      ${spent ? `<div class="pay">Você comprou ${brl(spent)} → ${saldo>0?`<b>você recebe ${brl(saldo)}</b>`:saldo<0?`<b>você ainda paga ${brl(-saldo)}</b>`:'<b>fica zerado</b>'}</div>` : `<div class="pay tag">É o que você deve repartir entre quem pagou as compras.</div>`}</div>`;
+  }else $("eMine").innerHTML = "";
 
   let h = `<div class="card"><div class="tag">Total gasto</div><div class="big">${brl(total)}</div>`;
   h += `<div class="pay tag">${Object.keys(CATS).filter(k=>byCat[k]).map(k=>`${CATS[k]} ${brl(byCat[k])}`).join(" · ")}</div>`;
@@ -466,10 +595,10 @@ function renderExp(){
     by.forEach(b=>{
       const eachD = Math.round(b.list.reduce((a,e)=>a+share(e,true),0));
       const eachN = Math.round(b.list.reduce((a,e)=>a+share(e,false),0));
-      const me = ppl.find(p=>p.name.trim().toLowerCase()===b.key);
+      const p = ppl.find(x=>x.name.trim().toLowerCase()===b.key);
       let saldoTxt = "";
-      if(me){
-        const saldo = b.spent - Math.round(owe(me.drinks));
+      if(p){
+        const saldo = b.spent - Math.round(owe(p.drinks));
         saldoTxt = saldo>0 ? `No fim, ${esc(b.name)} recebe ${brl(saldo)} (já descontada a parte dele(a))`
                  : saldo<0 ? `No fim, ${esc(b.name)} ainda paga ${brl(-saldo)}` : "Fica zerado";
       }
@@ -482,35 +611,53 @@ function renderExp(){
   }
   $("eSummary").innerHTML = h;
   $("eList").innerHTML = `<h2>Gastos lançados (${exps.length})</h2>` + exps.map(e=>`
-    <div class="row"><div class="top"><div><span class="name">${esc(e.item)}</span><div class="tag">${CATS[cat(e)]} · comprado por ${esc(e.buyer)}</div></div>
-    <div style="text-align:right"><b>${brl(cents(e))}</b><br><button class="ghost" data-edel="${esc(e.id)}">remover</button></div></div></div>`).join("");
+    <div class="row"><div class="top"><div><span class="name">${esc(e.item)}</span><div class="tag">${CATS[catOf(e)]} · comprado por ${esc(e.buyer)}</div></div>
+    <div style="text-align:right"><b>${brl(cents(e))}</b><div style="margin-top:6px"><button class="pill danger" data-edel="${esc(e.id)}">🗑️ Remover</button></div></div></div></div>`).join("");
 }
 
 $("eList").onclick = async e => {
-  const id = e.target.dataset.edel;
+  const btn = e.target.closest("button"); if(!btn) return;
+  if(btn.dataset.retry){ tick(true); return; }
+  const id = btn.dataset.edel;
   if(id && confirm("Remover este gasto?")){
-    await fetch(URL_E+"?id=eq."+encodeURIComponent(id), {method:"DELETE", headers:H});
-    toast("Removido"); loadExp();
+    try{
+      const r = await fetch(URL_E+"?id=eq."+encodeURIComponent(id), {method:"DELETE", headers:H});
+      if(!r.ok) throw new Error(r.status);
+      toast("Gasto removido");
+    }catch(err){ toast("Não consegui remover, tente de novo", true); }
+    loadExp();
   }
 };
 
-$("eSave").onclick = async () => {
+async function addExpense(){
   const item = $("eItem").value.trim(), buyer = $("eBuyer").value.trim(), cents = toCents($("eAmount").value);
-  if(!item){ toast("Digite o item"); $("eItem").focus(); return; }
-  if(cents===null || cents>10000000){ toast("Valor inválido"); $("eAmount").focus(); return; }
-  if(!buyer){ toast("Diga quem comprou"); $("eBuyer").focus(); return; }
-  $("eSave").disabled = true;
+  if(!cat){ fail($("catSeg"), "Escolha o tipo de gasto"); return; }
+  if(!item){ fail($("eItem"), "Diga o que foi comprado"); return; }
+  if(cents===null || cents<=0 || cents>10000000){ fail($("eAmount"), "Digite um valor válido, ex.: 25,00"); return; }
+  if(!buyer){ fail($("eBuyer"), "Diga quem comprou"); return; }
+  $("eSave").disabled = true; $("eSave").textContent = "Adicionando…";
   try{
-    const r = await fetch(URL_E, {method:"POST", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify({item, amount:(cents/100).toFixed(2), buyer, category:$("eCat").value})});
+    const r = await fetch(URL_E, {method:"POST", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify({item, amount:(cents/100).toFixed(2), buyer, category:cat})});
     if(!r.ok) throw new Error(r.status);
-    toast("Gasto adicionado!");
-    $("eItem").value=""; $("eAmount").value=""; // mantém o comprador para lançar vários itens seguidos
+    toast("Gasto adicionado! 💰");
+    $("eItem").value=""; $("eAmount").value="";   // mantém tipo e comprador para lançar vários itens seguidos
     await loadExp();
-  }catch(e){ toast("Erro ao salvar, tente de novo"); }
-  $("eSave").disabled = false;
-};
+    $("eSummary").scrollIntoView({behavior:"smooth", block:"start"});
+  }catch(e){ toast("Erro ao salvar, tente de novo", true); }
+  $("eSave").disabled = false; $("eSave").textContent = "Adicionar gasto";
+}
+$("eSave").onclick = addExpense;
+["eItem","eAmount","eBuyer"].forEach(id=>$(id).addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); addExpense(); } }));
 
-renderForm(); load(); loadExp(); setInterval(()=>{load();loadExp();}, 20000);
+/* ================= Início ================= */
+function tick(force){ if(document.hidden && !force) return; load(); loadExp(); }
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) tick(); });
+setInterval(tick, 20000);
+
+$("eBuyer").value = whoNow();
+renderForm();
+showTab(location.hash==="#gastos" ? "Gastos" : "Presenca");
+load(); loadExp();
 </script>
 </body>
 </html>
