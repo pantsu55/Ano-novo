@@ -372,7 +372,7 @@ function renderList(){
   $("sDrink").textContent = yes.reduce((a,r)=>a+getDrinks(r).length,0);
   const oncaYes = yes.filter(r=>r.onca);
   $("sGifts").textContent = oncaYes.reduce((a,r)=>a+(r.gifts||0),0);
-  $("oncaLine").textContent = "🐆 Amigo da onça: " + oncaYes.length + (oncaYes.length===1?" participante":" participantes");
+  $("oncaLine").textContent = (n=>"🐆 Amigo da onça: " + n + (n===1?" participante":" participantes"))(oncaYes.reduce((a,r)=>a+(r.guests||1),0));
   renderExp();
 
   const m = mine();
