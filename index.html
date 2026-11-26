@@ -96,7 +96,7 @@
         <button type="button" data-v="0" class="on">Não vou</button>
       </div>
       <div id="giftBox" hidden>
-        <label>Quantos presentinhos vai levar?</label>
+        <label id="giftLabel">Quantos presentinhos vai levar?</label>
         <div class="stepper">
           <button type="button" id="gMinus">−</button><span id="giftsN">1</span><button type="button" id="gPlus">+</button>
         </div>
@@ -173,6 +173,9 @@ function renderForm(){
   document.querySelectorAll("#oncaSeg button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="1")===onca));
   $("giftBox").hidden = !onca;
   $("giftsN").textContent = gifts;
+  $("giftLabel").textContent = guests === 1 ? "Quantos presentinhos vai levar?"
+    : guests === 2 ? "Quantos presentinhos vão levar no total? (os seus + os do(a) acompanhante)"
+    : "Quantos presentinhos vão levar no total? (somando todas as pessoas do grupo)";
   renderLists();
   const box = $("compBox");
   box.innerHTML = "";
