@@ -38,6 +38,9 @@
   .sub-row .tag{margin-left:4px}
   .photoBtn{display:inline-block;margin:0;padding:10px 14px;border:1px dashed var(--mut);border-radius:10px;color:var(--text);cursor:pointer;font-size:14px}
   .thumb{display:block;margin-top:8px;max-width:100%;max-height:160px;border-radius:10px;border:1px solid var(--line);object-fit:cover}
+  select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:16px}
+  .chk{display:flex;align-items:center;gap:8px;margin:6px 0 0;font-size:13px;color:var(--text)}
+  .chk input{width:auto}
   .line{display:flex;gap:8px}
   .sq{flex:0 0 46px;border-radius:10px;border:1px solid var(--line);background:#0f0d15;color:var(--text);font-size:20px;cursor:pointer}
   .sq.add{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700;font-size:24px}
@@ -84,6 +87,12 @@
       </div>
       <div id="compBox"></div>
 
+      <label>Você bebe álcool? 🍺</label>
+      <div class="seg" id="alcSeg">
+        <button type="button" data-v="1" class="on">Sim</button>
+        <button type="button" data-v="0">Não</button>
+      </div>
+
       <label>Comida que vai levar <span class="tag">(opcional · use o + para mais de uma)</span></label>
       <div id="foodList"></div>
 
@@ -121,6 +130,13 @@
   <div id="tabGastos" hidden>
     <div class="card">
       <div style="font-weight:600">Adicionar gasto</div>
+      <label for="eCat">Tipo de gasto</label>
+      <select id="eCat">
+        <option value="comida">🍽️ Comida</option>
+        <option value="bebida">🥤 Bebida sem álcool</option>
+        <option value="alcool">🍺 Bebida alcoólica</option>
+        <option value="itens" selected>🎈 Itens da festa (descartáveis, cooler, aluguel…)</option>
+      </select>
       <label for="eItem">Item</label>
       <input id="eItem" type="text" maxlength="100" placeholder="Ex.: Copo descartável" autocomplete="off">
       <label for="eAmount">Valor (R$)</label>
@@ -131,11 +147,7 @@
       <button class="go" id="eSave">Adicionar gasto</button>
     </div>
 
-    <div class="card">
-      <label for="eN" style="margin-top:0">Dividir entre quantas pessoas? <span class="tag" id="nHint"></span></label>
-      <input id="eN" type="text" inputmode="numeric" maxlength="3" placeholder="automático" autocomplete="off">
-      <div class="tag" style="margin-top:6px">Por padrão usa o total de pessoas confirmadas na aba Presença. Se quiser outro número, digite aqui (vale só neste aparelho).</div>
-    </div>
+    <div class="tag" style="margin:0 4px 12px">A divisão usa as pessoas confirmadas na aba Presença. Bebida alcoólica só é dividida entre quem marcou que bebe álcool.</div>
 
     <div id="eSummary"></div>
     <div id="eList"></div>
@@ -151,7 +163,7 @@ const whoNow = () => { try { return localStorage.getItem("festa_who") || ""; } c
 const H = {apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json", get "x-client-info"(){ return encodeURIComponent(devId+"|"+whoNow()); }};
 const $ = id => document.getElementById(id);
 
-let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1, exps = [], foodsList = [{n:"",p:null}], drinksList = [{n:""}];
+let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1, exps = [], foodsList = [{n:"",p:null}], drinksList = [{n:""}], alc = [true];
 const SUPA = "https://ksucnjrmcagzepxahync.supabase.co";
 const STORE = SUPA + "/storage/v1/object/public/party-photos/";
 const okPhoto = u => typeof u === "string" && u.startsWith(STORE);
@@ -177,6 +189,9 @@ function renderForm(){
     : guests === 2 ? "Quantos presentinhos vão levar no total? (os seus + os do(a) acompanhante)"
     : "Quantos presentinhos vão levar no total? (somando todas as pessoas do grupo)";
   renderLists();
+  while(alc.length < guests) alc.push(true);
+  alc.length = guests;
+  document.querySelectorAll("#alcSeg button").forEach(b=>b.classList.toggle("on", (b.dataset.v==="1")===(alc[0]!==false)));
   const box = $("compBox");
   box.innerHTML = "";
   for(let i=0;i<guests-1;i++){
@@ -186,7 +201,11 @@ function renderForm(){
     inp.type="text"; inp.maxLength=80; inp.autocomplete="off"; inp.placeholder="Ex.: João";
     inp.value = companions[i] || "";
     inp.oninput = () => { companions[i] = inp.value; };
-    box.appendChild(lab); box.appendChild(inp);
+    const chk = document.createElement("label"); chk.className = "chk";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = alc[i+1] !== false;
+    cb.onchange = () => { alc[i+1] = cb.checked; };
+    chk.appendChild(cb); chk.appendChild(document.createTextNode("bebe álcool 🍺"));
+    box.appendChild(lab); box.appendChild(inp); box.appendChild(chk);
   }
   $("formTitle").textContent = editingId ? "Editar confirmação" : "Sua confirmação";
   $("save").textContent = editingId ? "Salvar alterações" : "Confirmar";
@@ -249,13 +268,14 @@ function renderLists(){
   mk("drinkList", drinksList, "drink");
 }
 document.querySelectorAll("#statusSeg button").forEach(b=>b.onclick=()=>{status=b.dataset.v;renderForm();});
+document.querySelectorAll("#alcSeg button").forEach(b=>b.onclick=()=>{alc[0]=b.dataset.v==="1";renderForm();});
 document.querySelectorAll("#oncaSeg button").forEach(b=>b.onclick=()=>{onca=b.dataset.v==="1";if(onca&&gifts<1)gifts=1;renderForm();});
 $("gMinus").onclick=()=>{gifts=Math.max(1,gifts-1);renderForm();};
 $("gPlus").onclick=()=>{gifts=Math.min(20,gifts+1);renderForm();};
 $("minus").onclick=()=>{guests=Math.max(1,guests-1);renderForm();};
 $("plus").onclick=()=>{guests=Math.min(10,guests+1);renderForm();};
 
-function resetForm(){ editingId=null; status="vou"; guests=1; companions=[]; onca=false; gifts=1; foodsList=[{n:"",p:null}]; drinksList=[{n:""}]; $("name").value=""; renderForm(); }
+function resetForm(){ editingId=null; status="vou"; guests=1; companions=[]; alc=[true]; onca=false; gifts=1; foodsList=[{n:"",p:null}]; drinksList=[{n:""}]; $("name").value=""; renderForm(); }
 $("cancelEdit").onclick=resetForm;
 
 async function load(){
@@ -296,7 +316,7 @@ $("list").onclick = async e => {
   const ed = e.target.dataset.edit, del = e.target.dataset.del;
   if(ed){
     const r = rows.find(x=>x.id===ed); if(!r) return;
-    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])]; onca=!!r.onca; gifts=r.gifts>0?r.gifts:1; foodsList=getFoods(r).map(f=>({n:f.n,p:okPhoto(f.p)?f.p:null})); if(!foodsList.length) foodsList=[{n:"",p:null}]; drinksList=getDrinks(r).map(d=>({n:d.n})); if(!drinksList.length) drinksList=[{n:""}]; $("name").value=r.name;
+    editingId=r.id; status=r.status; guests=r.guests; companions=[...(r.companions||[])]; alc=Array.isArray(r.alcohol)?r.alcohol.map(x=>!!x):[]; onca=!!r.onca; gifts=r.gifts>0?r.gifts:1; foodsList=getFoods(r).map(f=>({n:f.n,p:okPhoto(f.p)?f.p:null})); if(!foodsList.length) foodsList=[{n:"",p:null}]; drinksList=getDrinks(r).map(d=>({n:d.n})); if(!drinksList.length) drinksList=[{n:""}]; $("name").value=r.name;
     renderForm(); window.scrollTo({top:0,behavior:"smooth"});
   }
   if(del && confirm("Remover sua confirmação?")){
@@ -310,10 +330,10 @@ $("save").onclick = async () => {
   if(!name){ toast("Digite seu nome"); $("name").focus(); return; }
   try{ localStorage.setItem("festa_who", name); }catch(e){}
   const going = status==="vou";
-  const comps = going ? Array.from({length:guests-1}, (_,i)=>(companions[i]||"").trim().slice(0,80)).filter(Boolean) : [];
+  const comps = going ? Array.from({length:guests-1}, (_,i)=>(companions[i]||"").trim().slice(0,80)) : [];
   const foods = going ? foodsList.map(f=>({n:(f.n||"").trim().slice(0,120), p:okPhoto(f.p)?f.p:null})).filter(f=>f.n).slice(0,10).map(f=>f.p?f:{n:f.n}) : [];
   const drinks = going ? drinksList.map(d=>({n:(d.n||"").trim().slice(0,120)})).filter(d=>d.n).slice(0,10) : [];
-  const body = { name, status, guests: going?guests:1, companions: comps, onca: going&&onca, gifts: going&&onca?gifts:0,
+  const body = { name, status, guests: going?guests:1, companions: comps, alcohol: going ? Array.from({length:guests},(_,i)=>alc[i]!==false) : [], onca: going&&onca, gifts: going&&onca?gifts:0,
     foods, drinks,
     food: foods.length ? foods.map(f=>f.n).join(", ").slice(0,120) : null,
     drink: drinks.length ? drinks.map(d=>d.n).join(", ").slice(0,120) : null,
@@ -373,9 +393,6 @@ document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
 /* ---------- Gastos ---------- */
 const brl = c => (c/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const toCents = s => { const n = parseFloat(String(s).trim().replace(/\./g,"").replace(",",".")); return isFinite(n) && n>=0 ? Math.round(n*100) : null; };
-const getN = () => { try { return parseInt(localStorage.getItem("festa_n")||"",10)||0; } catch(e){ return 0; } };
-$("eN").value = getN() || "";
-$("eN").oninput = () => { try { localStorage.setItem("festa_n", String(parseInt($("eN").value,10)||"")); } catch(e){} renderExp(); };
 
 async function loadExp(){
   try{
@@ -385,44 +402,88 @@ async function loadExp(){
   }catch(e){ $("eList").innerHTML='<div class="msg">Não consegui carregar os gastos. Tente atualizar a página.</div>'; }
 }
 
+const CATS = {comida:"🍽️ Comida", bebida:"🥤 Bebida sem álcool", alcool:"🍺 Bebida alcoólica", itens:"🎈 Itens da festa"};
+
+function people(){
+  const out = [];
+  rows.filter(r=>r.status==="vou").forEach(r=>{
+    for(let i=0;i<r.guests;i++){
+      const nm = i===0 ? r.name : ((r.companions||[])[i-1] || "").trim();
+      out.push({name: nm || ("Acompanhante de "+r.name), drinks: (Array.isArray(r.alcohol) && r.alcohol.length>i) ? !!r.alcohol[i] : true});
+    }
+  });
+  return out;
+}
+
 function renderExp(){
-  const auto = rows.filter(r=>r.status==="vou").reduce((a,r)=>a+r.guests,0);
-  const n = getN() || auto;
-  $("nHint").textContent = "(confirmadas: "+auto+")";
+  const ppl = people();
+  const nAll = ppl.length, nDrink = ppl.filter(p=>p.drinks).length;
   // sugestões de nomes
   const names = [];
   rows.filter(r=>r.status==="vou").forEach(r=>{ names.push(r.name); (r.companions||[]).forEach(c=>c&&names.push(c)); });
   $("buyerList").innerHTML = [...new Set(names)].map(x=>`<option value="${esc(x)}">`).join("");
 
-  const total = exps.reduce((a,e)=>a+Math.round(Number(e.amount)*100),0);
   if(!exps.length){ $("eSummary").innerHTML=""; $("eList").innerHTML='<div class="msg">Nenhum gasto lançado ainda.</div>'; return; }
 
-  const per = n ? Math.round(total/n) : 0;
-  const by = new Map();
-  exps.forEach(e=>{
-    const k = e.buyer.trim().toLowerCase();
-    if(!by.has(k)) by.set(k,{name:e.buyer.trim(),spent:0});
-    by.get(k).spent += Math.round(Number(e.amount)*100);
-  });
+  const cents = e => Math.round(Number(e.amount)*100);
+  const cat = e => CATS[e.category] ? e.category : "itens";
+  const total = exps.reduce((a,e)=>a+cents(e),0);
+  const byCat = {};
+  exps.forEach(e=>{ byCat[cat(e)] = (byCat[cat(e)]||0) + cents(e); });
+
+  // quanto uma pessoa paga por um gasto (álcool só entre quem bebe)
+  const share = (e, drinker) => {
+    if(cat(e)==="alcool"){ return (drinker && nDrink) ? cents(e)/nDrink : 0; }
+    return nAll ? cents(e)/nAll : 0;
+  };
+  const owe = drinker => exps.reduce((a,e)=>a+share(e,drinker),0);
+  const hasAlc = exps.some(e=>cat(e)==="alcool");
+  const oweD = Math.round(owe(true)), oweN = Math.round(owe(false));
 
   let h = `<div class="card"><div class="tag">Total gasto</div><div class="big">${brl(total)}</div>`;
-  if(n){ h += `<div class="pay">Dividido entre <b>${n}</b> ${n===1?'pessoa':'pessoas'}: <b>${brl(per)}</b> para cada uma</div>`; }
-  else { h += `<div class="pay tag">Ninguém confirmado ainda — digite quantas pessoas acima para ver a divisão.</div>`; }
+  h += `<div class="pay tag">${Object.keys(CATS).filter(k=>byCat[k]).map(k=>`${CATS[k]} ${brl(byCat[k])}`).join(" · ")}</div>`;
+  if(!nAll){
+    h += `<div class="pay tag">Ninguém confirmou presença ainda, então não dá para dividir.</div>`;
+  }else if(hasAlc && nDrink < nAll){
+    h += `<div class="pay">🍺 Quem bebe álcool (${nDrink} ${nDrink===1?'pessoa':'pessoas'}): <b>${brl(oweD)}</b> cada</div>
+          <div class="pay">🚫 Quem não bebe (${nAll-nDrink} ${nAll-nDrink===1?'pessoa':'pessoas'}): <b>${brl(oweN)}</b> cada</div>`;
+  }else{
+    h += `<div class="pay">Dividido entre <b>${nAll}</b> ${nAll===1?'pessoa':'pessoas'}: <b>${brl(oweD)}</b> para cada uma</div>`;
+  }
+  if(hasAlc && nDrink===0 && nAll){
+    h += `<div class="pay tag">⚠️ Ninguém marcou que bebe álcool, então a bebida alcoólica ainda não está sendo dividida.</div>`;
+  }
   h += `</div>`;
-  if(n){
+
+  if(nAll){
+    const by = new Map();
+    exps.forEach(e=>{
+      const k = e.buyer.trim().toLowerCase();
+      if(!by.has(k)) by.set(k,{key:k,name:e.buyer.trim(),spent:0,list:[]});
+      const b = by.get(k); b.spent += cents(e); b.list.push(e);
+    });
     h += `<h2>Para quem vai o dinheiro</h2>`;
-    [...by.values()].forEach(b=>{
-      const each = Math.round(b.spent/n);
-      const saldo = b.spent - per;
+    by.forEach(b=>{
+      const eachD = Math.round(b.list.reduce((a,e)=>a+share(e,true),0));
+      const eachN = Math.round(b.list.reduce((a,e)=>a+share(e,false),0));
+      const me = ppl.find(p=>p.name.trim().toLowerCase()===b.key);
+      let saldoTxt = "";
+      if(me){
+        const saldo = b.spent - Math.round(owe(me.drinks));
+        saldoTxt = saldo>0 ? `No fim, ${esc(b.name)} recebe ${brl(saldo)} (já descontada a parte dele(a))`
+                 : saldo<0 ? `No fim, ${esc(b.name)} ainda paga ${brl(-saldo)}` : "Fica zerado";
+      }
       h += `<div class="row"><div class="top"><span class="name">${esc(b.name)}</span><span class="tag">comprou ${brl(b.spent)}</span></div>
-        <div class="pay">Cada pessoa paga <b>${brl(each)}</b> para ${esc(b.name)}</div>
-        <div class="pay tag">${saldo>0?`No fim, ${esc(b.name)} recebe ${brl(saldo)} (já descontada a parte dele(a))`:saldo<0?`No fim, ${esc(b.name)} ainda paga ${brl(-saldo)}`:'Fica zerado'}</div></div>`;
+        <div class="pay">${eachD===eachN
+          ? `Cada pessoa paga <b>${brl(eachD)}</b> para ${esc(b.name)}`
+          : `Quem bebe álcool paga <b>${brl(eachD)}</b> e quem não bebe paga <b>${brl(eachN)}</b> para ${esc(b.name)}`}</div>
+        ${saldoTxt ? `<div class="pay tag">${saldoTxt}</div>` : ""}</div>`;
     });
   }
   $("eSummary").innerHTML = h;
   $("eList").innerHTML = `<h2>Gastos lançados (${exps.length})</h2>` + exps.map(e=>`
-    <div class="row"><div class="top"><div><span class="name">${esc(e.item)}</span><div class="tag">comprado por ${esc(e.buyer)}</div></div>
-    <div style="text-align:right"><b>${brl(Math.round(Number(e.amount)*100))}</b><br><button class="ghost" data-edel="${esc(e.id)}">remover</button></div></div></div>`).join("");
+    <div class="row"><div class="top"><div><span class="name">${esc(e.item)}</span><div class="tag">${CATS[cat(e)]} · comprado por ${esc(e.buyer)}</div></div>
+    <div style="text-align:right"><b>${brl(cents(e))}</b><br><button class="ghost" data-edel="${esc(e.id)}">remover</button></div></div></div>`).join("");
 }
 
 $("eList").onclick = async e => {
@@ -440,7 +501,7 @@ $("eSave").onclick = async () => {
   if(!buyer){ toast("Diga quem comprou"); $("eBuyer").focus(); return; }
   $("eSave").disabled = true;
   try{
-    const r = await fetch(URL_E, {method:"POST", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify({item, amount:(cents/100).toFixed(2), buyer})});
+    const r = await fetch(URL_E, {method:"POST", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify({item, amount:(cents/100).toFixed(2), buyer, category:$("eCat").value})});
     if(!r.ok) throw new Error(r.status);
     toast("Gasto adicionado!");
     $("eItem").value=""; $("eAmount").value=""; // mantém o comprador para lançar vários itens seguidos
