@@ -36,6 +36,11 @@
   .no .name{color:var(--no)}
   .sub-row{margin:-4px 0 8px 18px;padding:8px 12px;border-left:2px solid var(--gold);background:rgba(24,29,71,.6);border-radius:0 10px 10px 0;font-size:14px}
   .sub-row .tag{margin-left:4px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tabs button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;cursor:pointer}
+  .tabs button.on{background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700}
+  .big{font-size:20px;color:var(--gold);font-weight:700}
+  .pay{margin-top:6px;font-size:14px}
   .msg{text-align:center;color:var(--mut);padding:12px}
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#0a2a18;padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none}
   .toast.show{opacity:1}
@@ -46,6 +51,12 @@
   <h1>🎆 Festa de Ano Novo</h1>
   <p class="sub">Confirme sua presença e diga o que vai levar</p>
 
+  <div class="tabs">
+    <button type="button" class="on" data-tab="Presenca">🎉 Presença</button>
+    <button type="button" data-tab="Gastos">💰 Gastos</button>
+  </div>
+
+  <div id="tabPresenca">
   <div class="card">
     <div id="formTitle" style="font-weight:600">Sua confirmação</div>
     <label for="name">Seu nome</label>
@@ -97,6 +108,30 @@
   <div class="msg" id="oncaLine" style="padding:0 0 12px"></div>
 
   <div id="list"><div class="msg">Carregando…</div></div>
+  </div>
+
+  <div id="tabGastos" hidden>
+    <div class="card">
+      <div style="font-weight:600">Adicionar gasto</div>
+      <label for="eItem">Item</label>
+      <input id="eItem" type="text" maxlength="100" placeholder="Ex.: Copo descartável" autocomplete="off">
+      <label for="eAmount">Valor (R$)</label>
+      <input id="eAmount" type="text" inputmode="decimal" maxlength="10" placeholder="25,00" autocomplete="off">
+      <label for="eBuyer">Quem comprou</label>
+      <input id="eBuyer" type="text" maxlength="80" list="buyerList" placeholder="Ex.: Gabriel" autocomplete="off">
+      <datalist id="buyerList"></datalist>
+      <button class="go" id="eSave">Adicionar gasto</button>
+    </div>
+
+    <div class="card">
+      <label for="eN" style="margin-top:0">Dividir entre quantas pessoas? <span class="tag" id="nHint"></span></label>
+      <input id="eN" type="text" inputmode="numeric" maxlength="3" placeholder="automático" autocomplete="off">
+      <div class="tag" style="margin-top:6px">Por padrão usa o total de pessoas confirmadas na aba Presença. Se quiser outro número, digite aqui (vale só neste aparelho).</div>
+    </div>
+
+    <div id="eSummary"></div>
+    <div id="eList"></div>
+  </div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -106,7 +141,8 @@ const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 const H = {apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"};
 const $ = id => document.getElementById(id);
 
-let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1;
+let status = "vou", guests = 1, editingId = null, rows = [], companions = [], onca = false, gifts = 1, exps = [];
+const URL_E = "https://ksucnjrmcagzepxahync.supabase.co/rest/v1/party_expenses";
 const mine = () => { try { return JSON.parse(localStorage.getItem("festa_mine")||"[]"); } catch(e){ return []; } };
 const addMine = id => { try { localStorage.setItem("festa_mine", JSON.stringify([...new Set([...mine(), id])])); } catch(e){} };
 
@@ -164,6 +200,7 @@ function renderList(){
   const oncaYes = yes.filter(r=>r.onca);
   $("sGifts").textContent = oncaYes.reduce((a,r)=>a+(r.gifts||0),0);
   $("oncaLine").textContent = "🐆 Amigo da onça: " + oncaYes.length + (oncaYes.length===1?" participante":" participantes");
+  renderExp();
   const m = mine();
   const item = r => `
     <div class="row ${r.status==='vou'?'':'no'}">
@@ -215,7 +252,93 @@ $("save").onclick = async () => {
   $("save").disabled = false;
 };
 
-renderForm(); load(); setInterval(load, 20000);
+/* ---------- Abas ---------- */
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on", x===b));
+  $("tabPresenca").hidden = b.dataset.tab!=="Presenca";
+  $("tabGastos").hidden = b.dataset.tab!=="Gastos";
+});
+
+/* ---------- Gastos ---------- */
+const brl = c => (c/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const toCents = s => { const n = parseFloat(String(s).trim().replace(/\./g,"").replace(",",".")); return isFinite(n) && n>=0 ? Math.round(n*100) : null; };
+const getN = () => { try { return parseInt(localStorage.getItem("festa_n")||"",10)||0; } catch(e){ return 0; } };
+$("eN").value = getN() || "";
+$("eN").oninput = () => { try { localStorage.setItem("festa_n", String(parseInt($("eN").value,10)||"")); } catch(e){} renderExp(); };
+
+async function loadExp(){
+  try{
+    const r = await fetch(URL_E+"?select=*&order=created_at.asc", {headers:H});
+    if(!r.ok) throw new Error(r.status);
+    exps = await r.json(); renderExp();
+  }catch(e){ $("eList").innerHTML='<div class="msg">Não consegui carregar os gastos. Tente atualizar a página.</div>'; }
+}
+
+function renderExp(){
+  const auto = rows.filter(r=>r.status==="vou").reduce((a,r)=>a+r.guests,0);
+  const n = getN() || auto;
+  $("nHint").textContent = "(confirmadas: "+auto+")";
+  // sugestões de nomes
+  const names = [];
+  rows.filter(r=>r.status==="vou").forEach(r=>{ names.push(r.name); (r.companions||[]).forEach(c=>c&&names.push(c)); });
+  $("buyerList").innerHTML = [...new Set(names)].map(x=>`<option value="${esc(x)}">`).join("");
+
+  const total = exps.reduce((a,e)=>a+Math.round(Number(e.amount)*100),0);
+  if(!exps.length){ $("eSummary").innerHTML=""; $("eList").innerHTML='<div class="msg">Nenhum gasto lançado ainda.</div>'; return; }
+
+  const per = n ? Math.round(total/n) : 0;
+  const by = new Map();
+  exps.forEach(e=>{
+    const k = e.buyer.trim().toLowerCase();
+    if(!by.has(k)) by.set(k,{name:e.buyer.trim(),spent:0});
+    by.get(k).spent += Math.round(Number(e.amount)*100);
+  });
+
+  let h = `<div class="card"><div class="tag">Total gasto</div><div class="big">${brl(total)}</div>`;
+  if(n){ h += `<div class="pay">Dividido entre <b>${n}</b> ${n===1?'pessoa':'pessoas'}: <b>${brl(per)}</b> para cada uma</div>`; }
+  else { h += `<div class="pay tag">Ninguém confirmado ainda — digite quantas pessoas acima para ver a divisão.</div>`; }
+  h += `</div>`;
+  if(n){
+    h += `<h2>Para quem vai o dinheiro</h2>`;
+    [...by.values()].forEach(b=>{
+      const each = Math.round(b.spent/n);
+      const saldo = b.spent - per;
+      h += `<div class="row"><div class="top"><span class="name">${esc(b.name)}</span><span class="tag">comprou ${brl(b.spent)}</span></div>
+        <div class="pay">Cada pessoa paga <b>${brl(each)}</b> para ${esc(b.name)}</div>
+        <div class="pay tag">${saldo>0?`No fim, ${esc(b.name)} recebe ${brl(saldo)} (já descontada a parte dele(a))`:saldo<0?`No fim, ${esc(b.name)} ainda paga ${brl(-saldo)}`:'Fica zerado'}</div></div>`;
+    });
+  }
+  $("eSummary").innerHTML = h;
+  $("eList").innerHTML = `<h2>Gastos lançados (${exps.length})</h2>` + exps.map(e=>`
+    <div class="row"><div class="top"><div><span class="name">${esc(e.item)}</span><div class="tag">comprado por ${esc(e.buyer)}</div></div>
+    <div style="text-align:right"><b>${brl(Math.round(Number(e.amount)*100))}</b><br><button class="ghost" data-edel="${esc(e.id)}">remover</button></div></div></div>`).join("");
+}
+
+$("eList").onclick = async e => {
+  const id = e.target.dataset.edel;
+  if(id && confirm("Remover este gasto?")){
+    await fetch(URL_E+"?id=eq."+encodeURIComponent(id), {method:"DELETE", headers:H});
+    toast("Removido"); loadExp();
+  }
+};
+
+$("eSave").onclick = async () => {
+  const item = $("eItem").value.trim(), buyer = $("eBuyer").value.trim(), cents = toCents($("eAmount").value);
+  if(!item){ toast("Digite o item"); $("eItem").focus(); return; }
+  if(cents===null || cents>10000000){ toast("Valor inválido"); $("eAmount").focus(); return; }
+  if(!buyer){ toast("Diga quem comprou"); $("eBuyer").focus(); return; }
+  $("eSave").disabled = true;
+  try{
+    const r = await fetch(URL_E, {method:"POST", headers:{...H,Prefer:"return=minimal"}, body:JSON.stringify({item, amount:(cents/100).toFixed(2), buyer})});
+    if(!r.ok) throw new Error(r.status);
+    toast("Gasto adicionado!");
+    $("eItem").value=""; $("eAmount").value=""; // mantém o comprador para lançar vários itens seguidos
+    await loadExp();
+  }catch(e){ toast("Erro ao salvar, tente de novo"); }
+  $("eSave").disabled = false;
+};
+
+renderForm(); load(); loadExp(); setInterval(()=>{load();loadExp();}, 20000);
 </script>
 </body>
 </html>
